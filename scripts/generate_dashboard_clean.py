@@ -793,6 +793,19 @@ def generate_dashboard():
             alert('Next month functionality coming soon');
         }}
         
+        // Helper function to convert minutes to human-readable time
+        function formatDuration(minutes) {{
+            if (minutes < 60) {{
+                return minutes + 'm';
+            }}
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            if (mins === 0) {{
+                return hours + 'hr';
+            }}
+            return hours + 'hr' + mins + 'm';
+        }}
+        
         // Equity chart
         const chartData = {chart_data_json};
         const ctx = document.getElementById('equityChart').getContext('2d');
