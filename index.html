@@ -14,37 +14,34 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #FFFFFF;
-            color: #1A1D23;
+            background: #F5F6F8;
+            color: #1F2937;
             line-height: 1.6;
-        }
-        
-        .header {
-            background: #F8F9FA;
-            border-bottom: 1px solid #E0E3E8;
-            padding: 20px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        
-        .header-meta {
-            font-size: 13px;
-            color: #9CA3AF;
         }
         
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 32px;
+            padding: 32px 24px;
         }
         
-        /* TOP METRICS ROW */
+        .header {
+            margin-bottom: 32px;
+        }
+        
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .header-meta {
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        /* METRICS ROW */
         .metrics-row {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -52,12 +49,12 @@
             margin-bottom: 32px;
         }
         
-        .metric {
-            background: #F8F9FA;
-            border: 1px solid #E0E3E8;
+        .metric-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
             border-radius: 12px;
             padding: 24px;
-            min-height: 120px;
+            min-height: 140px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -69,19 +66,34 @@
             color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
         .metric-value {
             font-size: 32px;
             font-weight: 700;
             line-height: 1;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
         .metric-sub {
-            font-size: 13px;
+            font-size: 12px;
             color: #9CA3AF;
+        }
+        
+        .gauge-container {
+            width: 100%;
+            height: 6px;
+            background: #F3F4F6;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        
+        .gauge-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
         }
         
         /* MAIN GRID */
@@ -93,8 +105,8 @@
         }
         
         .card {
-            background: #F8F9FA;
-            border: 1px solid #E0E3E8;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
             border-radius: 12px;
             padding: 24px;
         }
@@ -102,39 +114,58 @@
         .card-title {
             font-size: 14px;
             font-weight: 600;
+            color: #1F2937;
             margin-bottom: 20px;
-            color: #1A1D23;
         }
         
         .chart-container {
             position: relative;
-            height: 320px;
+            height: 300px;
         }
         
-        /* SIDEBAR STATS */
-        .stat-group {
-            margin-bottom: 24px;
+        /* HEATMAP */
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 32px;
         }
         
-        .stat-group-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #9CA3AF;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+            cursor: default;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.2s;
         }
         
-        .stat-item {
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .stat-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #E0E3E8;
+            padding: 12px 0;
+            border-bottom: 1px solid #E5E7EB;
             font-size: 13px;
         }
         
-        .stat-item:last-child {
+        .stat-row:last-child {
             border-bottom: none;
         }
         
@@ -144,24 +175,24 @@
         
         .stat-value {
             font-weight: 600;
-            color: #1A1D23;
+            color: #1F2937;
         }
         
-        /* TRADES GRID */
-        .trades-grid {
+        /* PERFORMANCE GRID */
+        .performance-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
         
-        .trade-card {
-            background: #EEF0F2;
+        .perf-card {
+            background: #F3F4F6;
             border-radius: 8px;
             padding: 16px;
             text-align: center;
         }
         
-        .trade-label {
+        .perf-label {
             font-size: 11px;
             color: #9CA3AF;
             margin-bottom: 8px;
@@ -169,10 +200,10 @@
             font-weight: 600;
         }
         
-        .trade-value {
-            font-size: 28px;
+        .perf-value {
+            font-size: 24px;
             font-weight: 700;
-            color: #1A1D23;
+            color: #1F2937;
         }
         
         /* RESPONSIVE */
@@ -185,18 +216,12 @@
                 grid-template-columns: 1fr;
             }
             
-            .trades-grid {
+            .performance-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 16px;
-            }
-            
             .container {
                 padding: 16px;
             }
@@ -204,12 +229,11 @@
             .metrics-row {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
-                margin-bottom: 24px;
             }
             
-            .metric {
+            .metric-card {
                 padding: 16px;
-                min-height: 100px;
+                min-height: 120px;
             }
             
             .metric-value {
@@ -224,32 +248,32 @@
                 height: 240px;
             }
             
-            .trades-grid {
+            .heatmap {
+                gap: 2px;
+            }
+            
+            .performance-grid {
                 grid-template-columns: 1fr;
             }
         }
         
         @media (max-width: 480px) {
-            body {
-                font-size: 14px;
-            }
-            
-            .header {
-                padding: 12px;
-            }
-            
             .container {
                 padding: 12px;
             }
             
-            .metrics-row {
-                grid-template-columns: 1fr;
-                gap: 8px;
+            .header-title {
+                font-size: 20px;
             }
             
-            .metric {
+            .metrics-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .metric-card {
                 padding: 12px;
-                min-height: 90px;
+                min-height: 100px;
             }
             
             .metric-value {
@@ -259,46 +283,42 @@
             .metric-label {
                 font-size: 11px;
             }
-            
-            .metric-sub {
-                font-size: 12px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div>
-            <div class="header-title">Trading Dashboard</div>
-            <div class="header-meta">As of May 05, 2026</div>
-        </div>
-        <div class="header-meta">View: Dollars</div>
-    </div>
-    
     <div class="container">
-        <!-- KEY METRICS -->
+        <div class="header">
+            <div class="header-title">Trading Dashboard</div>
+            <div class="header-meta">As of May 05, 2026 • Inception Oct 15, 2025</div>
+        </div>
+        
+        <!-- METRICS ROW -->
         <div class="metrics-row">
-            <div class="metric">
+            <div class="metric-card">
                 <div class="metric-label">Account Value</div>
                 <div class="metric-value">$30,622</div>
                 <div class="metric-sub">NLV</div>
             </div>
-            <div class="metric">
+            <div class="metric-card">
                 <div class="metric-label">Daily P&L</div>
                 <div class="metric-value" style="color: #EF4444">-$7</div>
+                <div class="gauge-container">
+                    <div class="gauge-fill" style="width: 49.89176764815832%; background-color: #EF4444;"></div>
+                </div>
                 <div class="metric-sub">-0.02%</div>
             </div>
-            <div class="metric">
+            <div class="metric-card">
                 <div class="metric-label">30-Day Return</div>
                 <div class="metric-value" style="color: #10B981">+0.89%</div>
                 <div class="metric-sub">$271</div>
             </div>
-            <div class="metric">
+            <div class="metric-card">
                 <div class="metric-label">YTD Return</div>
                 <div class="metric-value" style="color: #EF4444">-17.87%</div>
                 <div class="metric-sub">-$6,664</div>
             </div>
-            <div class="metric">
+            <div class="metric-card">
                 <div class="metric-label">Inception Return</div>
                 <div class="metric-value" style="color: #10B981">+286.51%</div>
                 <div class="metric-sub">$22,699</div>
@@ -315,71 +335,75 @@
             </div>
             
             <div class="card">
-                <div class="stat-group">
-                    <div class="stat-group-title">Performance</div>
-                    <div class="stat-item">
+                <div class="card-title">Performance Metrics</div>
+                <div class="sidebar">
+                    <div class="stat-row">
                         <span class="stat-label">Win Rate</span>
                         <span class="stat-value" style="color: #10B981">15.9%</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-row">
+                        <span class="stat-label">Positive Days</span>
+                        <span class="stat-value">27/170</span>
+                    </div>
+                    <div class="stat-row">
                         <span class="stat-label">Avg Daily Move</span>
                         <span class="stat-value">2.26%</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-row">
                         <span class="stat-label">Volatility</span>
                         <span class="stat-value">31.60%</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-row">
                         <span class="stat-label">Best Day</span>
                         <span class="stat-value" style="color: #10B981">+411.53%</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-row">
                         <span class="stat-label">Worst Day</span>
                         <span class="stat-value" style="color: #EF4444">-11.84%</span>
                     </div>
-                </div>
-                
-                <div class="stat-group">
-                    <div class="stat-group-title">Risk</div>
-                    <div class="stat-item">
+                    <div class="stat-row">
                         <span class="stat-label">Drawdown</span>
                         <span class="stat-value" style="color: #EF4444">-24.77%</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">All-Time High</span>
-                        <span class="stat-value">$40,702</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- TRADES SECTION -->
+        <!-- CALENDAR HEATMAP -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-title">Daily P&L - Last 60 Days</div>
+            <div class="heatmap">
+                <div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 07: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 08: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 09: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 10: +0.00%">T</div><div class="heatmap-cell" style="background-color: #065F46; color: white;" title="Mar 11: +1.21%">W</div><div class="heatmap-cell" style="background-color: #FCA5A5; color: white;" title="Mar 12: -0.70%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 13: -0.13%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 14: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 15: +0.00%">S</div><div class="heatmap-cell" style="background-color: #FCA5A5; color: white;" title="Mar 16: -0.87%">M</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="Mar 17: +0.29%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 18: +0.00%">W</div><div class="heatmap-cell" style="background-color: #065F46; color: white;" title="Mar 19: +0.55%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 20: -0.36%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 21: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 22: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 23: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 24: +0.00%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 25: +0.00%">W</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 26: +0.00%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 27: +0.00%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 28: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 29: +0.00%">S</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="Mar 30: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Mar 31: +0.00%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 01: -0.24%">W</div><div class="heatmap-cell" style="background-color: #FCA5A5; color: white;" title="Apr 02: -0.50%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 03: +0.00%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 04: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 05: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 06: -0.28%">M</div><div class="heatmap-cell" style="background-color: #065F46; color: white;" title="Apr 07: +0.71%">T</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="Apr 08: +0.04%">W</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 09: -0.21%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 10: +0.00%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 11: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 12: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 13: +0.00%">M</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="Apr 14: +0.19%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 15: -0.11%">W</div><div class="heatmap-cell" style="background-color: #065F46; color: white;" title="Apr 16: +0.88%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 17: -0.20%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 18: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 19: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 20: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 21: +0.00%">T</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 22: +0.00%">W</div><div class="heatmap-cell" style="background-color: #FCA5A5; color: white;" title="Apr 23: -0.68%">T</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="Apr 24: +0.48%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 25: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 26: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 27: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="Apr 28: +0.00%">T</div><div class="heatmap-cell" style="background-color: #FCA5A5; color: white;" title="Apr 29: -1.48%">W</div><div class="heatmap-cell" style="background-color: #065F46; color: white;" title="Apr 30: +0.88%">T</div><div class="heatmap-cell" style="background-color: #10B981; color: white;" title="May 01: +0.44%">F</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="May 02: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="May 03: +0.00%">S</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="May 04: +0.00%">M</div><div class="heatmap-cell" style="background-color: #ECFDF5; color: transparent;" title="May 05: -0.02%">T</div>
+            </div>
+        </div>
+        
+        <!-- PERFORMANCE SUMMARY -->
         <div class="card">
-            <div class="card-title">Trade Activity</div>
-            <div class="trades-grid">
-                <div class="trade-card">
-                    <div class="trade-label">Total Trades</div>
-                    <div class="trade-value">157</div>
+            <div class="card-title">Trade Summary</div>
+            <div class="performance-grid">
+                <div class="perf-card">
+                    <div class="perf-label">Total Trades</div>
+                    <div class="perf-value">157</div>
                 </div>
-                <div class="trade-card">
-                    <div class="trade-label">This Week</div>
-                    <div class="trade-value">12</div>
+                <div class="perf-card">
+                    <div class="perf-label">This Week</div>
+                    <div class="perf-value">12</div>
                 </div>
-                <div class="trade-card">
-                    <div class="trade-label">Today</div>
-                    <div class="trade-value">0</div>
+                <div class="perf-card">
+                    <div class="perf-label">Today</div>
+                    <div class="perf-value">0</div>
                 </div>
-                <div class="trade-card">
-                    <div class="trade-label">Positive Days</div>
-                    <div class="trade-value" style="color: #10B981">27</div>
+                <div class="perf-card">
+                    <div class="perf-label">Win Rate</div>
+                    <div class="perf-value" style="color: #10B981">16%</div>
                 </div>
-                <div class="trade-card">
-                    <div class="trade-label">Inception</div>
-                    <div class="trade-value">Oct 15</div>
+                <div class="perf-card">
+                    <div class="perf-label">Best Day</div>
+                    <div class="perf-value" style="color: #10B981">+411.53%</div>
                 </div>
-                <div class="trade-card">
-                    <div class="trade-label">Win Rate</div>
-                    <div class="trade-value">16%</div>
+                <div class="perf-card">
+                    <div class="perf-label">Worst Day</div>
+                    <div class="perf-value" style="color: #EF4444">-11.84%</div>
                 </div>
             </div>
         </div>
@@ -397,12 +421,12 @@
                     label: 'Account Value',
                     data: chartData.map(d => d.value),
                     borderColor: '#6366F1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.08)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 4,
+                    pointHoverRadius: 6,
                     pointBackgroundColor: '#6366F1',
                 }]
             },
@@ -412,20 +436,19 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#F8F9FA',
-                        borderColor: '#E0E3E8',
+                        backgroundColor: '#FFFFFF',
+                        borderColor: '#E5E7EB',
                         borderWidth: 1,
-                        titleColor: '#1A1D23',
-                        bodyColor: '#1A1D23',
+                        titleColor: '#1F2937',
+                        bodyColor: '#1F2937',
                         padding: 12,
                         displayColors: false,
-                        cornerRadius: 6,
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: false,
-                        grid: { color: '#E0E3E8', drawBorder: false },
+                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
                         ticks: { color: '#9CA3AF', font: { size: 12 } },
                     },
                     x: {
