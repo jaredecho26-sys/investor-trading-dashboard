@@ -876,7 +876,6 @@ def generate_dashboard():
             <!-- Footer -->
             <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 16px;">
                 <button style="background: none; border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="closeDayDetail()">Cancel</button>
-                <button style="background: var(--purple); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="alert('View details coming soon')">View Details</button>
             </div>
         </div>
     </div>
