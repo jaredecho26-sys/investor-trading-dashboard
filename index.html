@@ -6,6 +6,31 @@
     <title>Trading Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <style>
+        :root {
+            --bg: #F5F6F8;
+            --card: #FFFFFF;
+            --border: #E5E7EB;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --text-light: #9CA3AF;
+            --purple: #6366F1;
+            --green: #10B981;
+            --red: #EF4444;
+            --gray: #F3F4F6;
+            --chart-border: rgba(0, 0, 0, 0.05);
+        }
+        
+        html.dark {
+            --bg: #1A1F2E;
+            --card: #252D3D;
+            --border: #374151;
+            --text-primary: #F1F5F9;
+            --text-secondary: #B4BCD0;
+            --text-light: #6B7280;
+            --gray: #374151;
+            --chart-border: rgba(255, 255, 255, 0.1);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -13,10 +38,10 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #F5F6F8;
-            color: #1F2937;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
         }
         
         .container {
@@ -26,19 +51,48 @@
         }
         
         .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 32px;
+        }
+        
+        .header-left {
+            flex: 1;
         }
         
         .header-title {
             font-size: 28px;
             font-weight: 700;
-            color: #1F2937;
             margin-bottom: 8px;
         }
         
         .header-meta {
             font-size: 14px;
-            color: #6B7280;
+            color: var(--text-secondary);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .dark-mode-toggle {
+            background: var(--gray);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .dark-mode-toggle:hover {
+            background: var(--border);
         }
         
         /* METRICS ROW */
@@ -50,8 +104,8 @@
         }
         
         .metric-card {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
             min-height: 140px;
@@ -63,7 +117,7 @@
         .metric-label {
             font-size: 12px;
             font-weight: 600;
-            color: #6B7280;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 16px;
@@ -78,13 +132,13 @@
         
         .metric-sub {
             font-size: 12px;
-            color: #9CA3AF;
+            color: var(--text-light);
         }
         
         .gauge-container {
             width: 100%;
             height: 6px;
-            background: #F3F4F6;
+            background: var(--gray);
             border-radius: 3px;
             overflow: hidden;
             margin-top: 12px;
@@ -96,17 +150,17 @@
             transition: width 0.3s;
         }
         
-        /* MAIN GRID */
-        .main-grid {
+        /* GRID LAYOUTS */
+        .charts-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-bottom: 32px;
         }
         
         .card {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
         }
@@ -114,7 +168,7 @@
         .card-title {
             font-size: 14px;
             font-weight: 600;
-            color: #1F2937;
+            color: var(--text-primary);
             margin-bottom: 20px;
         }
         
@@ -140,13 +194,40 @@
             font-size: 10px;
             font-weight: 600;
             color: white;
-            cursor: default;
-            border: 1px solid rgba(0,0,0,0.05);
+            border: 1px solid var(--chart-border);
             transition: transform 0.2s;
         }
         
         .heatmap-cell:hover {
             transform: scale(1.1);
+        }
+        
+        /* PERFORMANCE GRID */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .perf-card {
+            background: var(--gray);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .perf-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .perf-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
         }
         
         /* SIDEBAR */
@@ -161,7 +242,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid #E5E7EB;
+            border-bottom: 1px solid var(--border);
             font-size: 13px;
         }
         
@@ -170,40 +251,12 @@
         }
         
         .stat-label {
-            color: #6B7280;
+            color: var(--text-secondary);
         }
         
         .stat-value {
             font-weight: 600;
-            color: #1F2937;
-        }
-        
-        /* PERFORMANCE GRID */
-        .performance-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-        
-        .perf-card {
-            background: #F3F4F6;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-        }
-        
-        .perf-label {
-            font-size: 11px;
-            color: #9CA3AF;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        
-        .perf-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1F2937;
+            color: var(--text-primary);
         }
         
         /* RESPONSIVE */
@@ -212,7 +265,7 @@
                 grid-template-columns: repeat(3, 1fr);
             }
             
-            .main-grid {
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -224,6 +277,12 @@
         @media (max-width: 768px) {
             .container {
                 padding: 16px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
             }
             
             .metrics-row {
@@ -248,40 +307,18 @@
                 height: 240px;
             }
             
-            .heatmap {
-                gap: 2px;
-            }
-            
             .performance-grid {
                 grid-template-columns: 1fr;
             }
         }
         
         @media (max-width: 480px) {
-            .container {
-                padding: 12px;
-            }
-            
-            .header-title {
-                font-size: 20px;
-            }
-            
             .metrics-row {
                 grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .metric-card {
-                padding: 12px;
-                min-height: 100px;
             }
             
             .metric-value {
                 font-size: 20px;
-            }
-            
-            .metric-label {
-                font-size: 11px;
             }
         }
     </style>
@@ -289,8 +326,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-title">Trading Dashboard</div>
-            <div class="header-meta">As of May 05, 2026 • Inception Oct 15, 2025</div>
+            <div class="header-left">
+                <div class="header-title">Trading Dashboard</div>
+                <div class="header-meta">As of May 05, 2026 • Inception Oct 15, 2025</div>
+            </div>
+            <div class="header-right">
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+            </div>
         </div>
         
         <!-- METRICS ROW -->
@@ -325,8 +367,8 @@
             </div>
         </div>
         
-        <!-- MAIN CONTENT -->
-        <div class="main-grid">
+        <!-- MAIN CHARTS -->
+        <div class="charts-grid">
             <div class="card">
                 <div class="card-title">Equity Curve (60 Days)</div>
                 <div class="chart-container">
@@ -335,11 +377,28 @@
             </div>
             
             <div class="card">
+                <div class="card-title">Entry Time Analysis</div>
+                <div class="chart-container">
+                    <canvas id="entryTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECONDARY CHARTS -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-title">Trade Duration vs P&L</div>
+                <div class="chart-container">
+                    <canvas id="durationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
                 <div class="card-title">Performance Metrics</div>
                 <div class="sidebar">
                     <div class="stat-row">
                         <span class="stat-label">Win Rate</span>
-                        <span class="stat-value" style="color: #10B981">15.9%</span>
+                        <span class="stat-value" style="color: var(--green)">15.9%</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Positive Days</span>
@@ -355,15 +414,15 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Best Day</span>
-                        <span class="stat-value" style="color: #10B981">+411.53%</span>
+                        <span class="stat-value" style="color: var(--green)">+411.53%</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Worst Day</span>
-                        <span class="stat-value" style="color: #EF4444">-11.84%</span>
+                        <span class="stat-value" style="color: var(--red)">-11.84%</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Drawdown</span>
-                        <span class="stat-value" style="color: #EF4444">-24.77%</span>
+                        <span class="stat-value" style="color: var(--red)">-24.77%</span>
                     </div>
                 </div>
             </div>
@@ -377,7 +436,7 @@
             </div>
         </div>
         
-        <!-- PERFORMANCE SUMMARY -->
+        <!-- TRADE SUMMARY -->
         <div class="card">
             <div class="card-title">Trade Summary</div>
             <div class="performance-grid">
@@ -395,39 +454,54 @@
                 </div>
                 <div class="perf-card">
                     <div class="perf-label">Win Rate</div>
-                    <div class="perf-value" style="color: #10B981">16%</div>
+                    <div class="perf-value" style="color: var(--green)">16%</div>
                 </div>
                 <div class="perf-card">
                     <div class="perf-label">Best Day</div>
-                    <div class="perf-value" style="color: #10B981">+411.53%</div>
+                    <div class="perf-value" style="color: var(--green)">+411.53%</div>
                 </div>
                 <div class="perf-card">
                     <div class="perf-label">Worst Day</div>
-                    <div class="perf-value" style="color: #EF4444">-11.84%</div>
+                    <div class="perf-value" style="color: var(--red)">-11.84%</div>
                 </div>
             </div>
         </div>
     </div>
     
     <script>
-        const chartData = [{"date": "Mar 07", "value": 30672.0}, {"date": "Mar 08", "value": 30672.0}, {"date": "Mar 09", "value": 30672.0}, {"date": "Mar 10", "value": 30672.0}, {"date": "Mar 11", "value": 31043.0}, {"date": "Mar 12", "value": 30824.0}, {"date": "Mar 13", "value": 30785.0}, {"date": "Mar 14", "value": 30785.0}, {"date": "Mar 15", "value": 30785.0}, {"date": "Mar 16", "value": 30516.0}, {"date": "Mar 17", "value": 30605.0}, {"date": "Mar 18", "value": 30605.0}, {"date": "Mar 19", "value": 30773.0}, {"date": "Mar 20", "value": 30664.0}, {"date": "Mar 21", "value": 30664.0}, {"date": "Mar 22", "value": 30664.0}, {"date": "Mar 23", "value": 30664.0}, {"date": "Mar 24", "value": 30664.0}, {"date": "Mar 25", "value": 30664.0}, {"date": "Mar 26", "value": 30664.0}, {"date": "Mar 27", "value": 30664.0}, {"date": "Mar 28", "value": 30664.0}, {"date": "Mar 29", "value": 30664.0}, {"date": "Mar 30", "value": 30664.0}, {"date": "Mar 31", "value": 30664.0}, {"date": "Apr 01", "value": 30589.0}, {"date": "Apr 02", "value": 30436.0}, {"date": "Apr 03", "value": 30436.0}, {"date": "Apr 04", "value": 30436.0}, {"date": "Apr 05", "value": 30436.0}, {"date": "Apr 06", "value": 30351.0}, {"date": "Apr 07", "value": 30566.0}, {"date": "Apr 08", "value": 30577.0}, {"date": "Apr 09", "value": 30513.0}, {"date": "Apr 10", "value": 30513.0}, {"date": "Apr 11", "value": 30513.0}, {"date": "Apr 12", "value": 30513.0}, {"date": "Apr 13", "value": 30513.0}, {"date": "Apr 14", "value": 30570.0}, {"date": "Apr 15", "value": 30536.0}, {"date": "Apr 16", "value": 30804.0}, {"date": "Apr 17", "value": 30742.0}, {"date": "Apr 18", "value": 30742.0}, {"date": "Apr 19", "value": 30742.0}, {"date": "Apr 20", "value": 30742.0}, {"date": "Apr 21", "value": 30742.0}, {"date": "Apr 22", "value": 30742.0}, {"date": "Apr 23", "value": 30534.0}, {"date": "Apr 24", "value": 30681.0}, {"date": "Apr 25", "value": 30681.0}, {"date": "Apr 26", "value": 30681.0}, {"date": "Apr 27", "value": 30681.0}, {"date": "Apr 28", "value": 30681.0}, {"date": "Apr 29", "value": 30228.0}, {"date": "Apr 30", "value": 30493.0}, {"date": "May 01", "value": 30629.0}, {"date": "May 02", "value": 30629.0}, {"date": "May 03", "value": 30629.0}, {"date": "May 04", "value": 30629.0}, {"date": "May 05", "value": 30622.0}];
-        const ctx = document.getElementById('equityChart').getContext('2d');
+        // Dark mode toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            html.classList.toggle('dark');
+            localStorage.setItem('darkMode', !isDark);
+        }
         
-        new Chart(ctx, {
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Chart data
+        const chartData = [{"date": "Mar 07", "value": 30672.0}, {"date": "Mar 08", "value": 30672.0}, {"date": "Mar 09", "value": 30672.0}, {"date": "Mar 10", "value": 30672.0}, {"date": "Mar 11", "value": 31043.0}, {"date": "Mar 12", "value": 30824.0}, {"date": "Mar 13", "value": 30785.0}, {"date": "Mar 14", "value": 30785.0}, {"date": "Mar 15", "value": 30785.0}, {"date": "Mar 16", "value": 30516.0}, {"date": "Mar 17", "value": 30605.0}, {"date": "Mar 18", "value": 30605.0}, {"date": "Mar 19", "value": 30773.0}, {"date": "Mar 20", "value": 30664.0}, {"date": "Mar 21", "value": 30664.0}, {"date": "Mar 22", "value": 30664.0}, {"date": "Mar 23", "value": 30664.0}, {"date": "Mar 24", "value": 30664.0}, {"date": "Mar 25", "value": 30664.0}, {"date": "Mar 26", "value": 30664.0}, {"date": "Mar 27", "value": 30664.0}, {"date": "Mar 28", "value": 30664.0}, {"date": "Mar 29", "value": 30664.0}, {"date": "Mar 30", "value": 30664.0}, {"date": "Mar 31", "value": 30664.0}, {"date": "Apr 01", "value": 30589.0}, {"date": "Apr 02", "value": 30436.0}, {"date": "Apr 03", "value": 30436.0}, {"date": "Apr 04", "value": 30436.0}, {"date": "Apr 05", "value": 30436.0}, {"date": "Apr 06", "value": 30351.0}, {"date": "Apr 07", "value": 30566.0}, {"date": "Apr 08", "value": 30577.0}, {"date": "Apr 09", "value": 30513.0}, {"date": "Apr 10", "value": 30513.0}, {"date": "Apr 11", "value": 30513.0}, {"date": "Apr 12", "value": 30513.0}, {"date": "Apr 13", "value": 30513.0}, {"date": "Apr 14", "value": 30570.0}, {"date": "Apr 15", "value": 30536.0}, {"date": "Apr 16", "value": 30804.0}, {"date": "Apr 17", "value": 30742.0}, {"date": "Apr 18", "value": 30742.0}, {"date": "Apr 19", "value": 30742.0}, {"date": "Apr 20", "value": 30742.0}, {"date": "Apr 21", "value": 30742.0}, {"date": "Apr 22", "value": 30742.0}, {"date": "Apr 23", "value": 30534.0}, {"date": "Apr 24", "value": 30681.0}, {"date": "Apr 25", "value": 30681.0}, {"date": "Apr 26", "value": 30681.0}, {"date": "Apr 27", "value": 30681.0}, {"date": "Apr 28", "value": 30681.0}, {"date": "Apr 29", "value": 30228.0}, {"date": "Apr 30", "value": 30493.0}, {"date": "May 01", "value": 30629.0}, {"date": "May 02", "value": 30629.0}, {"date": "May 03", "value": 30629.0}, {"date": "May 04", "value": 30629.0}, {"date": "May 05", "value": 30622.0}];
+        const tradeData = [{"entry_hour": 11, "duration": 37, "pnl": -9.217817703508679}, {"entry_hour": 10, "duration": 37, "pnl": 58.22401860792619}, {"entry_hour": 13, "duration": 24, "pnl": 31.424746551017446}, {"entry_hour": 21, "duration": 216, "pnl": 51.0003770143196}, {"entry_hour": 17, "duration": 182, "pnl": 177.89258808178437}, {"entry_hour": 9, "duration": 197, "pnl": 7.3721287294870095}, {"entry_hour": 7, "duration": 138, "pnl": 178.9535738544675}, {"entry_hour": 12, "duration": 6, "pnl": 235.32878825215872}, {"entry_hour": 12, "duration": 176, "pnl": 84.03474060812012}, {"entry_hour": 10, "duration": 43, "pnl": 56.29443179920714}, {"entry_hour": 12, "duration": 152, "pnl": 296.83915851419965}, {"entry_hour": 18, "duration": 203, "pnl": -19.270149328607033}, {"entry_hour": 14, "duration": 177, "pnl": -2.3304497413933305}, {"entry_hour": 14, "duration": 121, "pnl": 236.78293489907375}, {"entry_hour": 8, "duration": 199, "pnl": 20.986906042507485}, {"entry_hour": 12, "duration": 142, "pnl": 89.88643852395852}, {"entry_hour": 11, "duration": 232, "pnl": 257.09863727194386}, {"entry_hour": 13, "duration": 70, "pnl": 26.601387780590525}, {"entry_hour": 8, "duration": 220, "pnl": 225.6920133534669}, {"entry_hour": 19, "duration": 20, "pnl": 67.32098488798947}, {"entry_hour": 6, "duration": 68, "pnl": -83.97333814867602}, {"entry_hour": 22, "duration": 78, "pnl": -145.0433127562752}, {"entry_hour": 16, "duration": 40, "pnl": 163.0541389373409}, {"entry_hour": 16, "duration": 202, "pnl": 14.594388136866186}, {"entry_hour": 14, "duration": 211, "pnl": 127.573098432038}, {"entry_hour": 10, "duration": 16, "pnl": 231.8132514006212}, {"entry_hour": 14, "duration": 171, "pnl": -166.9094957510127}, {"entry_hour": 10, "duration": 75, "pnl": 61.306174911946414}, {"entry_hour": 17, "duration": 133, "pnl": 163.75525681079574}, {"entry_hour": 17, "duration": 240, "pnl": 97.58498530488436}, {"entry_hour": 9, "duration": 108, "pnl": 102.23315725721623}, {"entry_hour": 18, "duration": 116, "pnl": 84.06066054460484}, {"entry_hour": 18, "duration": 123, "pnl": 0.5540089343321242}, {"entry_hour": 6, "duration": 209, "pnl": 101.95813365207354}, {"entry_hour": 6, "duration": 60, "pnl": 61.109980748003636}, {"entry_hour": 22, "duration": 174, "pnl": 52.399567961419606}, {"entry_hour": 17, "duration": 12, "pnl": -199.8818138507292}, {"entry_hour": 13, "duration": 118, "pnl": -213.31524851148185}, {"entry_hour": 7, "duration": 24, "pnl": 216.73884032854278}, {"entry_hour": 19, "duration": 52, "pnl": -59.45790498925524}, {"entry_hour": 8, "duration": 51, "pnl": 62.388042635750395}, {"entry_hour": 15, "duration": 30, "pnl": -65.98019329019255}, {"entry_hour": 22, "duration": 227, "pnl": 66.77325409236563}, {"entry_hour": 13, "duration": 210, "pnl": -89.82244370465301}, {"entry_hour": 17, "duration": 153, "pnl": 237.4566865186889}, {"entry_hour": 8, "duration": 20, "pnl": -168.1495464637649}, {"entry_hour": 22, "duration": 103, "pnl": 382.4006284754894}, {"entry_hour": 20, "duration": 112, "pnl": 85.4951037532893}, {"entry_hour": 13, "duration": 189, "pnl": -62.485937438240285}, {"entry_hour": 17, "duration": 203, "pnl": 22.627486182130735}, {"entry_hour": 9, "duration": 119, "pnl": 486.0942177035244}, {"entry_hour": 22, "duration": 81, "pnl": 123.84454542236455}, {"entry_hour": 7, "duration": 186, "pnl": -12.35115002770604}, {"entry_hour": 22, "duration": 240, "pnl": 13.521351779024165}, {"entry_hour": 20, "duration": 198, "pnl": 161.84003580186825}, {"entry_hour": 15, "duration": 240, "pnl": 199.63429750931678}, {"entry_hour": 12, "duration": 19, "pnl": -26.436735391210448}, {"entry_hour": 9, "duration": 179, "pnl": -52.276291689513016}, {"entry_hour": 9, "duration": 79, "pnl": 125.3093538244167}, {"entry_hour": 18, "duration": 109, "pnl": -201.66133313907542}, {"entry_hour": 8, "duration": 44, "pnl": -216.60171399724118}, {"entry_hour": 7, "duration": 195, "pnl": 107.23987277210108}, {"entry_hour": 9, "duration": 114, "pnl": -110.94814503156903}, {"entry_hour": 19, "duration": 148, "pnl": 154.5734856932899}, {"entry_hour": 16, "duration": 103, "pnl": 292.92074599489536}, {"entry_hour": 19, "duration": 211, "pnl": -21.2649810355811}, {"entry_hour": 13, "duration": 51, "pnl": -133.71968563289352}, {"entry_hour": 20, "duration": 46, "pnl": 42.926543142277716}, {"entry_hour": 22, "duration": 192, "pnl": 40.70330884760076}, {"entry_hour": 16, "duration": 172, "pnl": 16.548567426380117}, {"entry_hour": 14, "duration": 59, "pnl": 14.962312052765583}, {"entry_hour": 8, "duration": 224, "pnl": 80.12919648826613}, {"entry_hour": 8, "duration": 112, "pnl": 38.013840269535855}, {"entry_hour": 7, "duration": 173, "pnl": 222.87636810399547}, {"entry_hour": 10, "duration": 218, "pnl": -67.64043081198186}, {"entry_hour": 7, "duration": 63, "pnl": 147.55150478329247}, {"entry_hour": 16, "duration": 117, "pnl": -206.61009768101724}, {"entry_hour": 14, "duration": 48, "pnl": 80.10769638532886}, {"entry_hour": 21, "duration": 18, "pnl": 330.85119486962685}, {"entry_hour": 16, "duration": 61, "pnl": 24.32795290164128}, {"entry_hour": 14, "duration": 107, "pnl": 49.24187455793956}, {"entry_hour": 11, "duration": 146, "pnl": -109.61808508517564}, {"entry_hour": 12, "duration": 169, "pnl": -163.2088748957131}, {"entry_hour": 13, "duration": 140, "pnl": 246.59380267717626}, {"entry_hour": 10, "duration": 113, "pnl": -111.73082152747693}, {"entry_hour": 20, "duration": 29, "pnl": 324.5829561275287}, {"entry_hour": 8, "duration": 21, "pnl": 367.1447737661194}, {"entry_hour": 16, "duration": 86, "pnl": 87.27972705316199}, {"entry_hour": 14, "duration": 228, "pnl": 112.88536463695945}, {"entry_hour": 20, "duration": 24, "pnl": -154.93492849572414}, {"entry_hour": 12, "duration": 122, "pnl": -196.94095338771967}, {"entry_hour": 10, "duration": 125, "pnl": 101.48175693122698}, {"entry_hour": 12, "duration": 194, "pnl": -76.45289273484705}, {"entry_hour": 8, "duration": 92, "pnl": -55.65698426546271}, {"entry_hour": 14, "duration": 69, "pnl": 249.89685204612104}, {"entry_hour": 19, "duration": 239, "pnl": 36.64068114024456}, {"entry_hour": 20, "duration": 36, "pnl": 42.07863216768227}, {"entry_hour": 9, "duration": 48, "pnl": -17.548185187378138}, {"entry_hour": 22, "duration": 161, "pnl": -45.640708003289916}, {"entry_hour": 16, "duration": 144, "pnl": 303.3053959996447}, {"entry_hour": 7, "duration": 171, "pnl": 101.12221758198979}, {"entry_hour": 16, "duration": 31, "pnl": 119.59626004663649}, {"entry_hour": 8, "duration": 97, "pnl": 156.64937417027028}, {"entry_hour": 17, "duration": 63, "pnl": -156.19281008771392}, {"entry_hour": 18, "duration": 190, "pnl": -7.539630821204497}, {"entry_hour": 7, "duration": 9, "pnl": -28.763711636994145}, {"entry_hour": 9, "duration": 214, "pnl": 104.87443817237742}, {"entry_hour": 17, "duration": 84, "pnl": 73.75542972884938}, {"entry_hour": 18, "duration": 59, "pnl": 27.6700066567087}, {"entry_hour": 13, "duration": 147, "pnl": 71.99024148161905}, {"entry_hour": 7, "duration": 33, "pnl": -196.428512856115}, {"entry_hour": 10, "duration": 79, "pnl": -105.18216146697503}, {"entry_hour": 11, "duration": 232, "pnl": 252.59061708669802}, {"entry_hour": 19, "duration": 229, "pnl": 93.90764258898317}, {"entry_hour": 18, "duration": 14, "pnl": -138.28463418281763}, {"entry_hour": 15, "duration": 22, "pnl": 142.40070047671267}, {"entry_hour": 7, "duration": 199, "pnl": -161.50316504345946}, {"entry_hour": 16, "duration": 126, "pnl": 242.15834004649147}, {"entry_hour": 20, "duration": 64, "pnl": 120.84524357897942}, {"entry_hour": 18, "duration": 101, "pnl": 215.41039235274147}, {"entry_hour": 11, "duration": 51, "pnl": 177.3434364866993}, {"entry_hour": 6, "duration": 53, "pnl": -200.72389475229704}, {"entry_hour": 20, "duration": 227, "pnl": 402.4955038354701}, {"entry_hour": 19, "duration": 160, "pnl": -98.4978888780258}, {"entry_hour": 6, "duration": 91, "pnl": 54.85266857233274}, {"entry_hour": 15, "duration": 153, "pnl": 32.68681518838896}, {"entry_hour": 14, "duration": 114, "pnl": 64.0075133979078}, {"entry_hour": 20, "duration": 229, "pnl": -95.25639524033875}, {"entry_hour": 8, "duration": 71, "pnl": 103.37245037965738}, {"entry_hour": 6, "duration": 218, "pnl": 102.53983666334119}, {"entry_hour": 18, "duration": 58, "pnl": -143.13947272345646}, {"entry_hour": 18, "duration": 43, "pnl": -188.4459313637228}, {"entry_hour": 21, "duration": 80, "pnl": 204.01993042996722}, {"entry_hour": 7, "duration": 210, "pnl": 47.76776539609326}, {"entry_hour": 22, "duration": 67, "pnl": 71.91454127624097}, {"entry_hour": 7, "duration": 140, "pnl": 104.97709456836382}, {"entry_hour": 18, "duration": 106, "pnl": -49.238154211268835}, {"entry_hour": 20, "duration": 150, "pnl": 268.0263965579501}, {"entry_hour": 11, "duration": 214, "pnl": -8.889576325084086}, {"entry_hour": 9, "duration": 71, "pnl": -3.22073191531193}, {"entry_hour": 19, "duration": 120, "pnl": -13.518473646806086}, {"entry_hour": 10, "duration": 41, "pnl": -219.60988719873774}, {"entry_hour": 8, "duration": 178, "pnl": -27.37111916161527}, {"entry_hour": 13, "duration": 214, "pnl": -13.357800900916935}, {"entry_hour": 15, "duration": 206, "pnl": -138.63422777335478}, {"entry_hour": 17, "duration": 215, "pnl": -89.09859665500215}, {"entry_hour": 15, "duration": 59, "pnl": 68.97006620353196}, {"entry_hour": 12, "duration": 19, "pnl": 47.18187901694477}, {"entry_hour": 10, "duration": 238, "pnl": 95.69123918008214}, {"entry_hour": 9, "duration": 167, "pnl": -104.43837541909622}, {"entry_hour": 17, "duration": 151, "pnl": -207.94923950950783}, {"entry_hour": 11, "duration": 154, "pnl": 89.04452111681849}, {"entry_hour": 9, "duration": 228, "pnl": 39.13850179372851}, {"entry_hour": 6, "duration": 102, "pnl": 197.9688540939928}, {"entry_hour": 9, "duration": 22, "pnl": 60.382886558519}, {"entry_hour": 16, "duration": 92, "pnl": -10.595328285926463}, {"entry_hour": 11, "duration": 238, "pnl": -163.6939576292343}];
+        
+        // Equity curve
+        const ctx1 = document.getElementById('equityChart').getContext('2d');
+        new Chart(ctx1, {
             type: 'line',
             data: {
                 labels: chartData.map(d => d.date),
                 datasets: [{
                     label: 'Account Value',
                     data: chartData.map(d => d.value),
-                    borderColor: '#6366F1',
+                    borderColor: 'var(--purple)',
                     backgroundColor: 'rgba(99, 102, 241, 0.08)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 6,
-                    pointBackgroundColor: '#6366F1',
                 }]
             },
             options: {
@@ -436,24 +510,93 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#E5E7EB',
+                        backgroundColor: 'var(--card)',
+                        borderColor: 'var(--border)',
                         borderWidth: 1,
-                        titleColor: '#1F2937',
-                        bodyColor: '#1F2937',
+                        titleColor: 'var(--text-primary)',
+                        bodyColor: 'var(--text-primary)',
                         padding: 12,
                         displayColors: false,
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: false,
-                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
-                        ticks: { color: '#9CA3AF', font: { size: 12 } },
+                        grid: { color: 'var(--chart-border)', drawBorder: false },
+                        ticks: { color: 'var(--text-light)' },
                     },
                     x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: '#9CA3AF', font: { size: 12 } },
+                        grid: { display: false },
+                        ticks: { color: 'var(--text-light)' },
+                    }
+                }
+            }
+        });
+        
+        // Entry time scatter
+        const ctx2 = document.getElementById('entryTimeChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Entry Time P&L',
+                    data: tradeData.map(d => ({ x: d.entry_hour, y: d.pnl })),
+                    backgroundColor: tradeData.map(d => d.pnl >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'),
+                    borderColor: 'transparent',
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Hour of Day', color: 'var(--text-light)' },
+                        min: 0,
+                        max: 23,
+                        grid: { color: 'var(--chart-border)' },
+                        ticks: { color: 'var(--text-light)' },
+                    },
+                    y: {
+                        title: { display: true, text: 'P&L ($)', color: 'var(--text-light)' },
+                        grid: { color: 'var(--chart-border)' },
+                        ticks: { color: 'var(--text-light)' },
+                    }
+                }
+            }
+        });
+        
+        // Duration scatter
+        const ctx3 = document.getElementById('durationChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Duration vs P&L',
+                    data: tradeData.map(d => ({ x: d.duration, y: d.pnl })),
+                    backgroundColor: tradeData.map(d => d.pnl >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'),
+                    borderColor: 'transparent',
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Duration (minutes)', color: 'var(--text-light)' },
+                        grid: { color: 'var(--chart-border)' },
+                        ticks: { color: 'var(--text-light)' },
+                    },
+                    y: {
+                        title: { display: true, text: 'P&L ($)', color: 'var(--text-light)' },
+                        grid: { color: 'var(--chart-border)' },
+                        ticks: { color: 'var(--text-light)' },
                     }
                 }
             }
