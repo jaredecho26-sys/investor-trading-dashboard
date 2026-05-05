@@ -1262,18 +1262,7 @@ def generate_dashboard():
             
             // Populate trades table with real data
             const tableBody = document.getElementById('tradesTableBody');
-            tableBody.innerHTML = tradesForDate.map(trade => `
-                <tr>
-                    <td>` + trade.orderTime.substring(11, 19) + `</td>
-                    <td><span class="ticker-badge">` + trade.symbol.substring(0, 3) + `</span></td>
-                    <td>` + trade.side + `</td>
-                    <td>` + trade.symbol + `</td>
-                    <td style="color: #9CA3AF;">+$0.00</td>
-                    <td style="color: #9CA3AF;">+0.00%</td>
-                    <td style="color: #9CA3AF;">-</td>
-                    <td>` + trade.orderType + `</td>
-                </tr>
-            `).join('');
+            let html = ''; for (let i = 0; i < tradesForDate.length; i++) {{ const t = tradesForDate[i]; html += '<tr><td style="padding:10px;">' + t.orderTime.substring(11, 19) + '</td><td style="padding:10px;"><span style="background:#6366F1;color:white;padding:2px 6px;border-radius:4px;">' + t.symbol.substring(0, 3) + '</span></td><td style="padding:10px;">' + t.side + '</td><td style="padding:10px;">' + t.symbol + '</td><td style="padding:10px;color:#9CA3AF;">+$0.00</td><td style="padding:10px;color:#9CA3AF;">+0.00%</td><td style="padding:10px;color:#9CA3AF;">-</td><td style="padding:10px;">' + t.orderType + '</td></tr>'; }} tableBody.innerHTML = html;
             
             // Render flat intraday chart for visualization
             renderIntradayChart(tradesForDate, pnl);
