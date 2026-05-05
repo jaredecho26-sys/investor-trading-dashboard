@@ -108,9 +108,11 @@ def convert_orders_to_trades(orders):
             if normalized_time_str.endswith('+0000'):
                 normalized_time_str = normalized_time_str[:-5] + '+00:00'
             
-            order_time = datetime.fromisoformat(normalized_time_str)
-            entry_hour = order_time.hour
-            entry_minute = order_time.minute
+            order_time_utc = datetime.fromisoformat(normalized_time_str)
+            # Convert UTC to PST (UTC-7)
+            order_time_pst = order_time_utc - timedelta(hours=7)
+            entry_hour = order_time_pst.hour
+            entry_minute = order_time_pst.minute
             
             # Extract base symbol (e.g., "QQQ" from "QQQ   251107C00607000")
             raw_symbol = order.get('symbol', 'UNKNOWN')
@@ -129,7 +131,7 @@ def convert_orders_to_trades(orders):
                 "quantity": quantity,
                 "price": price,
                 "order_time_str": order_time_str,
-                "order_date": order_time.strftime('%Y-%m-%d'),
+                "order_date": order_time_utc.strftime('%Y-%m-%d'),
                 "pnl": 0,  # Will be calculated per-day
                 "roi": 0,
                 "r_multiple": 0,
