@@ -10,9 +10,15 @@ import os
 import sys
 import subprocess
 import time
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.path.expanduser('~/clawd/scripts'))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPORT_DIR = REPO_ROOT / "reports"
+INCEPTION_DATE = datetime(2025, 11, 1, tzinfo=timezone.utc).astimezone()
+
+sys.path.insert(0, str(SCRIPT_DIR))
 from schwab_token_utils import get_fresh_access_token
 from schwab_balance_tracker import save_daily_balance
 
@@ -102,7 +108,7 @@ def generate_report(include_dashboard_url=True):
         today_trades = len([o for o in orders if o.get('enteredTime', '').startswith(today) and o.get('status') == 'FILLED'])
         
         # Get all-time trades
-        all_start = datetime(2025, 11, 17, tzinfo=timezone.utc).astimezone()
+        all_start = INCEPTION_DATE
         all_url = f"https://api.schwabapi.com/trader/v1/orders?fromEnteredTime={all_start.isoformat()}&toEnteredTime={end_date.isoformat()}&maxResults=500"
         req = urllib.request.Request(all_url, headers=headers)
         with urllib.request.urlopen(req) as response:
@@ -129,7 +135,7 @@ Portfolio Snapshot:
 📈 TRADES TAKEN:
   • Last 7 Days: {filled_count} filled orders
   • Today: {today_trades} trades
-  • Since 11/17/2025: {all_filled} trades
+  • Since 11/01/2025: {all_filled} trades
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -153,10 +159,9 @@ Portfolio Snapshot:
 """
         
         # Save report first so dashboard generation picks up the latest daily note
-        report_dir = os.path.expanduser("~/clawd/memory/trading-reports")
-        os.makedirs(report_dir, exist_ok=True)
-        
-        report_file = os.path.join(report_dir, f"{datetime.now().strftime('%Y-%m-%d')}-trading-report.md")
+        REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
+        report_file = REPORT_DIR / f"{datetime.now().strftime('%Y-%m-%d')}-trading-report.md"
         with open(report_file, 'w') as f:
             f.write(report)
         
@@ -164,7 +169,7 @@ Portfolio Snapshot:
         print("[*] Generating HTML dashboard with fresh data...")
         try:
             result = subprocess.run(
-                [sys.executable, os.path.expanduser('~/clawd/scripts/generate_cached_dashboard.py')],
+                [sys.executable, str(SCRIPT_DIR / 'generate_cached_dashboard.py')],
                 capture_output=True,
                 text=True,
                 timeout=15

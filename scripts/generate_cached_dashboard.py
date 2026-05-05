@@ -14,10 +14,12 @@ from pathlib import Path
 from statistics import mean
 from string import Template
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+INCEPTION_TARGET = datetime(2025, 11, 1)
 TRACKER_FILE = Path(os.path.expanduser("~/clawd/memory/balance_tracker.json"))
-REPORT_DIR = Path(os.path.expanduser("~/clawd/memory/trading-reports"))
-DASHBOARD_DIR = Path(os.path.expanduser("~/clawd/dashboards"))
-DASHBOARD_FILE = DASHBOARD_DIR / "trading-dashboard.html"
+REPORT_DIR = REPO_ROOT / "reports"
+DASHBOARD_FILE = REPO_ROOT / "index.html"
+LEGACY_DASHBOARD_FILE = REPO_ROOT / "trading-dashboard.html"
 
 POSITIVE = "#22c55e"
 NEGATIVE = "#f87171"
@@ -87,7 +89,7 @@ def parse_report_metrics(report_text):
         "cash_position": r"Cash Position:\s*\$([\d,]+\.\d{2})",
         "filled_7d": r"Last 7 Days:\s*(\d+) filled orders",
         "today_trades": r"Today:\s*(\d+) trades",
-        "all_filled": r"Since 11/17/2025:\s*(\d+) trades",
+        "all_filled": r"Since 11/01/2025:\s*(\d+) trades",
         "generated_time": r"Generated:\s*([^\n]+)",
         "automation_status": r"Automation Status:\s*([^\n]+)",
     }
@@ -160,7 +162,8 @@ def generate_dashboard(open_after=False):
 
     latest_date, current_value = history[-1]
     previous_date, previous_value = history[-2] if len(history) > 1 else history[-1]
-    inception_date, inception_value = history[0]
+    inception_date = INCEPTION_TARGET
+    inception_value = next((value for date_obj, value in history if date_obj == INCEPTION_TARGET), None)
 
     trailing_60 = history[-60:] if len(history) >= 60 else history
     trailing_30 = history[-30:] if len(history) >= 30 else history
@@ -251,8 +254,12 @@ def generate_dashboard(open_after=False):
         },
         {
             "label": "Since inception",
-            "value": format_percent(inception_pct or 0),
-            "sub": f"${format_currency(inception_usd or 0, with_sign=True)} since {inception_date.strftime('%b %d, %Y')}",
+            "value": format_percent(inception_pct),
+            "sub": (
+                f"${format_currency(inception_usd, with_sign=True)} since {inception_date.strftime('%b %d, %Y')}"
+                if inception_value is not None
+                else f"Baseline missing for {inception_date.strftime('%b %d, %Y')}"
+            ),
             "tone": "positive" if (inception_pct or 0) > 0 else "negative" if (inception_pct or 0) < 0 else "neutral",
         },
     ]
@@ -1161,7 +1168,7 @@ def generate_dashboard(open_after=False):
 
     risk_rows = [
         ("Inception date", inception_date.strftime("%b %d, %Y")),
-        ("Inception balance", f"${format_currency(inception_value)}"),
+        ("Inception balance", f"${format_currency(inception_value)}" if inception_value is not None else "Missing in tracker"),
         ("All-time high date", all_time_high_date.strftime("%b %d, %Y")),
         ("Drawdown from peak", f"{format_percent(drawdown_pct)} • ${format_currency(drawdown_usd, with_sign=True)}"),
         ("30D positive sessions", f"{positive_days_30}/{len(daily_diffs_30) or 0}"),
@@ -1217,8 +1224,8 @@ def generate_dashboard(open_after=False):
         neutral_color=NEUTRAL,
     )
 
-    DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_FILE.write_text(rendered)
+    LEGACY_DASHBOARD_FILE.write_text(rendered)
     print(f"✓ Dashboard generated: {DASHBOARD_FILE}")
 
     if open_after:

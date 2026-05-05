@@ -9,6 +9,7 @@ import urllib.parse
 import base64
 import os
 import sys
+import time
 from datetime import datetime
 
 SECRETS_DIR = os.path.expanduser("~/clawd/secrets")
@@ -32,6 +33,9 @@ def read_token():
 
 def write_token(token_data):
     """Write updated token data"""
+    token_data = dict(token_data)
+    token_data['saved_at_epoch'] = int(time.time())
+    token_data['saved_at_iso'] = datetime.utcnow().isoformat() + 'Z'
     with open(SCHWAB_TOKEN_FILE, 'w') as f:
         json.dump(token_data, f, indent=2)
     os.chmod(SCHWAB_TOKEN_FILE, 0o600)
@@ -43,10 +47,12 @@ def refresh_token_if_needed():
     """
     try:
         token_data = read_token()
-        expires_in = token_data.get('expires_in', 0)
-        
-        # If expires_in > 120 seconds (2 min buffer), token is still valid
-        if expires_in > 120:
+        expires_in = int(token_data.get('expires_in', 0) or 0)
+        saved_at_epoch = int(token_data.get('saved_at_epoch', 0) or 0)
+        remaining = (saved_at_epoch + expires_in) - int(time.time()) if saved_at_epoch else 0
+
+        # If token has >120 seconds remaining (2 min buffer), keep using it.
+        if remaining > 120:
             return token_data['access_token']
         
         # Token expired or about to expire - refresh it
@@ -84,6 +90,9 @@ def _do_refresh(token_data):
         req = urllib.request.Request(token_url, data=data, headers=headers, method='POST')
         with urllib.request.urlopen(req) as response:
             new_token_data = json.loads(response.read().decode('utf-8'))
+
+        if 'refresh_token' not in new_token_data and REFRESH_TOKEN:
+            new_token_data['refresh_token'] = REFRESH_TOKEN
         
         # Save the new tokens
         write_token(new_token_data)
