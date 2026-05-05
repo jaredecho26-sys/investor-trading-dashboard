@@ -146,43 +146,26 @@ def convert_orders_to_trades(orders):
     
     return trades
 
-def calculate_daily_pnl(orders):
-    """Calculate daily P&L by matching buys and sells per symbol."""
+def calculate_daily_pnl(history):
+    """Calculate daily P&L from balance history: today_balance - yesterday_balance.
+    
+    Args:
+        history: List of (date_obj, balance) tuples from load_balance_history()
+    
+    Returns:
+        Dict of date_str -> daily_pnl
+    """
     daily_pnl = {}  # date -> pnl
     
-    # Group orders by date and symbol
-    orders_by_date_symbol = {}
-    for order in orders:
-        try:
-            date = order.get('order_date', datetime.now().strftime('%Y-%m-%d'))
-            symbol = order.get('symbol', '')
-            key = (date, symbol)
-            
-            if key not in orders_by_date_symbol:
-                orders_by_date_symbol[key] = {'buys': [], 'sells': []}
-            
-            side = order.get('side', 'BUY').upper()
-            if side == 'BUY':
-                orders_by_date_symbol[key]['buys'].append(order)
-            else:
-                orders_by_date_symbol[key]['sells'].append(order)
-        except Exception as e:
-            print(f"[!] Error grouping order: {e}", file=sys.stderr)
-            continue
-    
-    # Calculate P&L for each symbol/date
-    for (date, symbol), sides_dict in orders_by_date_symbol.items():
-        buys = sides_dict['buys']
-        sells = sides_dict['sells']
+    # Calculate P&L for each day as: today_balance - yesterday_balance
+    for i in range(1, len(history)):
+        prev_date, prev_balance = history[i-1]
+        curr_date, curr_balance = history[i]
         
-        buy_cost = sum(float(b.get('price', 0)) * float(b.get('quantity', 0)) for b in buys)
-        sell_proceeds = sum(float(s.get('price', 0)) * float(s.get('quantity', 0)) for s in sells)
+        date_key = curr_date.strftime("%Y-%m-%d")
+        pnl = curr_balance - prev_balance
         
-        pnl = sell_proceeds - buy_cost
-        
-        if date not in daily_pnl:
-            daily_pnl[date] = 0
-        daily_pnl[date] += pnl
+        daily_pnl[date_key] = pnl
     
     return daily_pnl
 
@@ -280,29 +263,19 @@ def generate_dashboard():
     inception_date = INCEPTION_TARGET
     inception_value = INCEPTION_BALANCE
     
-    # Daily returns using real orders and balance history
+    # Daily returns using real balance tracker data
     daily_returns = []
-    daily_pnl_map = {}
+    daily_pnl_map = calculate_daily_pnl(history)  # Use balance-based P&L for accuracy
     
-    if orders:
-        # Use real orders to build daily P&L map
-        real_daily_pnl = calculate_daily_pnl(orders)
-        daily_pnl_map = real_daily_pnl
-    
-    # Also add balance-based P&L for dates without order data
+    # Calculate daily returns as percentage
     for i in range(1, len(history)):
-        prev = history[i-1][1]
-        curr = history[i][1]
+        prev_balance = history[i-1][1]
         date_key = history[i][0].strftime("%Y-%m-%d")
-        pnl = curr - prev
         
-        # If we have real order P&L, use it; otherwise use balance-based
-        if date_key not in daily_pnl_map:
-            daily_pnl_map[date_key] = pnl
-        
-        if prev:
-            actual_pnl = daily_pnl_map.get(date_key, pnl)
-            daily_returns.append(((actual_pnl) / prev) * 100)
+        if prev_balance and date_key in daily_pnl_map:
+            daily_pnl = daily_pnl_map[date_key]
+            daily_return_pct = (daily_pnl / prev_balance) * 100
+            daily_returns.append(daily_return_pct)
     
     # Period calculations
     val_30d_ago = history[-30][1] if len(history) >= 30 else inception_value
@@ -354,10 +327,18 @@ def generate_dashboard():
         for d, v in history[-60:]
     ]
     
-    # Convert real orders to trades for analysis, or use synthetic if no real data
+    # Convert real orders to trades for analysis (use orders for trade grouping/timing)
+    # But P&L is calculated from balance data, not order prices
     if orders:
         trades_data = convert_orders_to_trades(orders)
-        print(f"✓ Using {len(trades_data)} real trades for dashboard")
+        print(f"✓ Using {len(trades_data)} real trades for dashboard (P&L from balance tracker)")
+        
+        # Assign real daily P&L from balance data to trades
+        for trade in trades_data:
+            date_key = trade.get('order_date')
+            if date_key in daily_pnl_map:
+                # Distribute daily P&L across trades for that day (for visualization)
+                trade['pnl'] = daily_pnl_map[date_key]
     else:
         print(f"[!] No real orders available, using synthetic data")
         trades_data = generate_synthetic_trades(trades_total if trades_total > 0 else 157)
