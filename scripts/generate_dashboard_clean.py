@@ -526,32 +526,7 @@ def generate_dashboard():
         else:
             return "#DC2626"
     
-    # Prepare scatter data: individual trades with time (P&L not available per-trade from API)
-    # Note: Schwab API only provides order entry times, not exit times or individual trade P&L
-    # Per-trade P&L requires matching BUY/SELL pairs and tracking exit prices (not in API response)
-    entry_time_scatter_data = []
-    for trade in trades_data:
-        entry_hour = trade["entry_hour"]
-        entry_minute = trade["entry_minute"]
-        
-        # Only include trades within market hours (6:30am to 1:00pm)
-        if entry_hour < 6 or (entry_hour == 6 and entry_minute < 30) or entry_hour > 13:
-            continue
-        
-        time_label = pst_time_from_hour_minute(entry_hour, entry_minute)
-        # Convert time label to decimal hours for x-axis plotting
-        x_value = entry_hour + entry_minute / 60.0
-        
-        # Use 0 for individual trade P&L since we don't have exit data
-        # Daily P&L is tracked at the day level (in calendar + modal)
-        entry_time_scatter_data.append({
-            "x": x_value,
-            "y": 0,  # Individual trade P&L not available from API
-            "time": time_label,
-            "color": "#9CA3AF"  # Gray (neutral) since P&L unknown per trade
-        })
-    
-    # Legacy support: also keep bucketed labels for backward compatibility
+    # Legacy support: bucketed labels for analysis
     entry_times_sorted = []
     for hour in range(6, 14):
         for minute in [0, 30]:
@@ -609,7 +584,6 @@ def generate_dashboard():
     chart_data_json = json.dumps(chart_data)
     entry_time_labels_json = json.dumps(entry_time_labels)
     entry_time_pnls_json = json.dumps(entry_time_pnls)
-    entry_time_scatter_json = json.dumps(entry_time_scatter_data)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
     
     # Build recent trades list (SELL orders = closed trades)
@@ -1137,16 +1111,6 @@ def generate_dashboard():
             </div>
         </div>
         
-        <!-- CHARTS GRID -->
-        <div class="charts-grid">
-            <div class="card">
-                <div class="card-title">Entry Time Analysis (PST)</div>
-                <div class="chart-container">
-                    <canvas id="entryTimeChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
         <!-- RECENT TRADES -->
         <div class="card" style="margin-top: 24px;">
             <div class="card-title">Recent trades</div>
@@ -1511,58 +1475,7 @@ def generate_dashboard():
             }}
         }});
         
-        // Entry Time Analysis Chart - Scatter plot of individual trades
-        const entryTimeScatterData = {entry_time_scatter_json};
-        
-        const entryCtx = document.getElementById('entryTimeChart').getContext('2d');
-        new Chart(entryCtx, {{
-            type: 'scatter',
-            data: {{
-                datasets: [{{
-                    label: 'Trade P&L by Entry Time',
-                    data: entryTimeScatterData.map(t => ({{ x: t.x, y: t.y }})),
-                    backgroundColor: entryTimeScatterData.map(t => t.color),
-                    borderColor: entryTimeScatterData.map(t => t.color),
-                    borderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                }}]
-            }},
-            options: {{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {{
-                    legend: {{ display: false }},
-                    tooltip: {{
-                        backgroundColor: '#252D3D',
-                        borderColor: '#374151',
-                        titleColor: '#F1F5F9',
-                        bodyColor: '#F1F5F9',
-                        padding: 12,
-                        callbacks: {{
-                            label: function(context) {{
-                                const idx = context.dataIndex;
-                                return entryTimeScatterData[idx].time + ': $' + context.parsed.y.toFixed(2);
-                            }}
-                        }}
-                    }}
-                }},
-                scales: {{
-                    y: {{
-                        grid: {{ color: 'rgba(0,0,0,0.05)' }},
-                        ticks: {{ color: '#9CA3AF' }},
-                        title: {{ display: true, text: 'P&L ($)', color: '#9CA3AF' }}
-                    }},
-                    x: {{
-                        grid: {{ display: false }},
-                        ticks: {{ color: '#9CA3AF' }},
-                        title: {{ display: true, text: 'Entry Time (PST)', color: '#9CA3AF' }},
-                        min: 6.5,
-                        max: 13.5,
-                    }}
-                }}
-            }}
-        }});
+
     </script>
 </body>
 </html>
@@ -1591,7 +1504,6 @@ def generate_dashboard():
         chart_data_json=chart_data_json,
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
-        entry_time_scatter_json=entry_time_scatter_json,
         intraday_json=intraday_json,
         all_calendars_json_str=all_calendars_json_str,
         current_month_key=current_month_key,
