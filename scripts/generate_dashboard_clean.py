@@ -573,68 +573,37 @@ def generate_dashboard():
         symbols_in_trades = set(t['ticker'] for t in trades_data)
         print(f"   Symbols: {', '.join(sorted(symbols_in_trades)[:10])}")
     
-    # Build calendar cells HTML with rich day info (P&L, trades, win rate)
+    # Build calendar cells HTML - clean simple design
     calendar_cells_html = ""
-    # Also collect week data for week summaries
-    weeks_with_data = []
-    current_week_pnl = 0
-    current_week_days = 0
-    week_num = 0
     
-    for idx, day in enumerate(calendar_days):
-        # Track weeks (7 cells per week)
-        if idx > 0 and idx % 7 == 0:
-            if current_week_days > 0:
-                weeks_with_data.append({"pnl": current_week_pnl, "days": current_week_days, "week": week_num})
-            week_num += 1
-            current_week_pnl = 0
-            current_week_days = 0
-        
+    for day in calendar_days:
         if day is None or day == 0:
             calendar_cells_html += '<div class="heatmap-cell heatmap-empty"></div>'
         else:
             pnl = day["pnl"]
-            current_week_pnl += pnl
-            if pnl != 0:
-                current_week_days += 1
-            
             has_trades = day["trade_count"] > 0
-            border_color = "#10B981" if pnl >= 0 else "#EF4444"
-            bg_color = "#F0FDF4" if pnl >= 0 else "#FEF2F2"
-            dot_color = "#10B981" if pnl >= 0 else "#EF4444"
             
-            pnl_str = f"${pnl:,.1f}" if pnl >= 0 else f"-${abs(pnl):,.1f}"
-            pnl_color = "#10B981" if pnl >= 0 else "#EF4444"
+            # Color based on P&L
+            if pnl > 100:
+                bg_color = "#065F46"  # Dark green
+                text_color = "#ECFDF5"
+            elif pnl > 0:
+                bg_color = "#10B981"  # Green
+                text_color = "#ECFDF5"
+            elif pnl > -100:
+                bg_color = "#FEF2F2"  # Light red
+                text_color = "#1F2937"
+            else:
+                bg_color = "#DC2626"  # Dark red
+                text_color = "#ECFDF5"
             
-            calendar_cells_html += f'''<div class="heatmap-cell-rich" style="background-color: {bg_color}; border: 2px solid {border_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {pnl})">
-                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">{day["day"]}</div>
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
-                    <div style="font-size: 14px; font-weight: 700; color: {pnl_color};">{pnl_str}</div>
-                    {f'<div style="font-size: 10px; color: #6B7280;">{day["trade_count"]} trade{"" if day["trade_count"] == 1 else "s"}</div>' if has_trades else ''}
-                    {f'<div style="font-size: 10px; color: #6B7280;">{day["win_rate"]:.1f}%</div>' if has_trades else ''}
-                </div>
-                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: {dot_color}; display: {"block" if has_trades else "none"};"></div>
+            pnl_str = f"${pnl:,.0f}" if pnl >= 0 else f"-${abs(pnl):,.0f}"
+            
+            calendar_cells_html += f'''<div class="heatmap-cell" style="background-color: {bg_color}; color: {text_color}; position: relative; cursor: pointer;" onclick="openDayDetail('{day["date"]}', {pnl})">
+                <div style="font-size: 11px; font-weight: 700;">{day["day"]}</div>
+                <div style="font-size: 9px; margin-top: 2px; opacity: 0.9;">{pnl_str}</div>
+                {f'<div style="font-size: 8px; opacity: 0.8;">{day["trade_count"]}t</div>' if has_trades else ''}
             </div>'''
-    
-    # Add last week
-    if current_week_days > 0:
-        weeks_with_data.append({"pnl": current_week_pnl, "days": current_week_days, "week": week_num})
-    
-    # Generate week summary boxes
-    weeks_html = ""
-    for week_data in weeks_with_data:
-        week_label = f"Week {week_data['week'] + 1}"
-        week_pnl = week_data["pnl"]
-        week_pnl_str = f"${week_pnl:,.1f}" if week_pnl >= 0 else f"-${abs(week_pnl):,.1f}"
-        week_pnl_color = "#10B981" if week_pnl >= 0 else "#EF4444"
-        week_bg = "#F0FDF4" if week_pnl >= 0 else "#FEF2F2"
-        week_border = "#10B981" if week_pnl >= 0 else "#EF4444"
-        
-        weeks_html += f'''<div style="background: {week_bg}; border: 2px solid {week_border}; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: center;">
-            <div style="font-size: 12px; color: #9CA3AF; margin-bottom: 8px;">{week_label}</div>
-            <div style="font-size: 16px; font-weight: 700; color: {week_pnl_color}; margin-bottom: 4px;">{week_pnl_str}</div>
-            <div style="font-size: 12px; color: #9CA3AF;">{week_data['days']} day{"" if week_data['days'] == 1 else "s"}</div>
-        </div>'''
     
     # Prepare JSON data strings
     chart_data_json = json.dumps(chart_data)
@@ -935,36 +904,19 @@ def generate_dashboard():
             aspect-ratio: 1;
             border-radius: 6px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
         }}
         
         .heatmap-cell:hover {{
-            transform: scale(1.1);
-        }}
-        
-        .heatmap-cell-rich {{
-            aspect-ratio: 1;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-sizing: border-box;
-        }}
-        
-        .heatmap-cell-rich:hover {{
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }}
         
         .heatmap-empty {{
@@ -1226,13 +1178,8 @@ def generate_dashboard():
                     <button onclick="nextMonth()">Next →</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 20px;">
-                <div class="heatmap-grid">
-                    {calendar_cells_html}
-                </div>
-                <div style="flex: 0 0 140px;">
-                    {weeks_html}
-                </div>
+            <div class="heatmap-grid">
+                {calendar_cells_html}
             </div>
         </div>
     </div>
@@ -1639,7 +1586,6 @@ def generate_dashboard():
         trades_total=trades_total,
         month_name_str=month_name,
         calendar_cells_html=calendar_cells_html,
-        weeks_html=weeks_html,
         recent_trades_html=recent_trades_html,
         view_more_btn=view_more_btn,
         chart_data_json=chart_data_json,
