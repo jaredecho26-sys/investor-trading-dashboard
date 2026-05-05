@@ -251,6 +251,101 @@ def pst_time_from_hour_minute(hour, minute):
     else:
         return f"{hour - 12}:{minute:02d}pm"
 
+def get_month_calendar_data(year, month, daily_pnl_map):
+    """
+    Generate calendar weeks starting with Sunday (standard US calendar).
+    Returns list of weeks, where each week contains 7 days (0 for empty cells).
+    Each day is a dict with: day (number), date (YYYY-MM-DD), pnl, intensity
+    """
+    import calendar as cal
+    
+    # Get the first day of the month (0=Monday, 6=Sunday)
+    first_day_weekday = cal.monthrange(year, month)[0]  # 0=Monday
+    
+    # Convert Monday-first to Sunday-first: add 1 to shift, then mod 7
+    # Monday(0) -> 1; Tuesday(1) -> 2; ... Sunday(6) -> 0
+    empty_cells_at_start = (first_day_weekday + 1) % 7
+    
+    # Build weeks starting with Sunday
+    result_weeks = []
+    current_week = [0] * empty_cells_at_start  # Empty cells for alignment
+    
+    # Get number of days in month
+    num_days = cal.monthrange(year, month)[1]
+    
+    for day in range(1, num_days + 1):
+        date_key = f"{year:04d}-{month:02d}-{day:02d}"
+        pnl = daily_pnl_map.get(date_key, 0)
+        intensity = 4 if pnl > 100 else (3 if pnl > 0 else (2 if pnl > -100 else 1))
+        
+        current_week.append({
+            "day": day,
+            "date": date_key,
+            "pnl": pnl,
+            "intensity": intensity,
+        })
+        
+        if len(current_week) == 7:
+            result_weeks.append(current_week)
+            current_week = []
+    
+    # Pad last week with empty cells if needed
+    if current_week:
+        current_week.extend([0] * (7 - len(current_week)))
+        result_weeks.append(current_week)
+    
+    return result_weeks
+
+def generate_all_month_calendars(history, daily_pnl_map):
+    """
+    Generate calendar data for all months from inception to current date.
+    Returns dict: {"YYYY-MM": {"name": "Month Year", "weeks": [...], "pnl": total_pnl}}
+    """
+    import calendar as cal
+    
+    inception = INCEPTION_TARGET
+    today = datetime.now()
+    
+    all_calendars = {}
+    current = inception.replace(day=1)  # Start from first day of inception month
+    
+    while current <= today:
+        year = current.year
+        month = current.month
+        month_key = f"{year:04d}-{month:02d}"
+        month_name = current.strftime("%B %Y")
+        
+        # Get calendar weeks for this month
+        weeks = get_month_calendar_data(year, month, daily_pnl_map)
+        
+        # Calculate total P&L for month
+        num_days = cal.monthrange(year, month)[1]
+        month_pnl = sum(
+            daily_pnl_map.get(f"{year:04d}-{month:02d}-{day:02d}", 0)
+            for day in range(1, num_days + 1)
+        )
+        
+        # Flatten weeks to cells for HTML generation
+        calendar_cells = []
+        for week in weeks:
+            for day_entry in week:
+                calendar_cells.append(day_entry)
+        
+        all_calendars[month_key] = {
+            "name": month_name,
+            "weeks": weeks,
+            "cells": calendar_cells,
+            "pnl": month_pnl,
+        }
+        
+        # Move to next month using manual arithmetic
+        if month == 12:
+            current = current.replace(year=year + 1, month=1)
+        else:
+            current = current.replace(month=month + 1)
+    
+    return all_calendars
+
 def generate_dashboard():
     # Load real orders from cache
     orders = load_orders_from_cache()
@@ -386,26 +481,15 @@ def generate_dashboard():
         pnls = entry_time_buckets[bucket_key]["pnls"]
         entry_time_buckets[bucket_key]["avg_pnl"] = sum(pnls) / len(pnls) if pnls else 0
     
-    # Generate month calendar
+    # Generate month calendar data for all months (starting with Sunday)
     today = datetime.now()
-    month_cal = monthcalendar(today.year, today.month)
-    month_name = today.strftime("%B %Y")
+    all_month_calendars = generate_all_month_calendars(history, daily_pnl_map)
     
-    # Build calendar with P&L data
-    calendar_days = []
-    for week in month_cal:
-        for day in week:
-            if day == 0:
-                calendar_days.append(None)
-            else:
-                date_key = f"{today.year:04d}-{today.month:02d}-{day:02d}"
-                pnl = daily_pnl_map.get(date_key, 0)
-                calendar_days.append({
-                    "day": day,
-                    "date": date_key,
-                    "pnl": pnl,
-                    "intensity": 4 if pnl > 100 else (3 if pnl > 0 else (2 if pnl > -100 else 1)),
-                })
+    # Use current month as default
+    current_month_key = today.strftime("%Y-%m")
+    current_month_data = all_month_calendars.get(current_month_key, list(all_month_calendars.values())[-1])
+    month_name = current_month_data["name"]
+    calendar_days = current_month_data["cells"]
     
     def fmt_currency(v):
         return f"${v:,.0f}" if v >= 0 else f"-${abs(v):,.0f}"
@@ -448,20 +532,46 @@ def generate_dashboard():
         symbols_in_trades = set(t['ticker'] for t in trades_data)
         print(f"   Symbols: {', '.join(sorted(symbols_in_trades)[:10])}")
     
-    # Build calendar cells HTML
+    # Build calendar cells HTML with day numbers in upper right
     calendar_cells_html = ""
     for day in calendar_days:
-        if day is None:
+        if day is None or day == 0:
             calendar_cells_html += '<div class="heatmap-cell heatmap-empty"></div>'
         else:
             bg_color = heatmap_color(day["pnl"])
-            calendar_cells_html += f'<div class="heatmap-cell" style="background-color: {bg_color}" onclick="openDayDetail(\'{day["date"]}\', {day["pnl"]}, {trades_total // 30})">{day["day"]}</div>'
+            # Cell with day number in upper right corner
+            calendar_cells_html += f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]}, {trades_total // 30})">
+                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">{day["day"]}</span>
+            </div>'''
     
     # Prepare JSON data strings
     chart_data_json = json.dumps(chart_data)
     entry_time_labels_json = json.dumps(entry_time_labels)
     entry_time_pnls_json = json.dumps(entry_time_pnls)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
+    
+    # Build calendar cells JSON for month navigation
+    all_calendars_json = {}
+    for month_key, month_data in all_month_calendars.items():
+        calendar_cells_list = []
+        for day in month_data["cells"]:
+            if day == 0:
+                calendar_cells_list.append(None)
+            else:
+                bg_color = heatmap_color(day["pnl"])
+                calendar_cells_list.append({
+                    "html": f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]}, {trades_total // 30})">
+                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">{day["day"]}</span>
+            </div>''',
+                    "name": month_data["name"],
+                })
+        all_calendars_json[month_key] = {
+            "name": month_data["name"],
+            "cells": calendar_cells_list,
+            "pnl": month_data["pnl"],
+        }
+    
+    all_calendars_json_str = json.dumps(all_calendars_json)
     
     # Generate modal trades table HTML for a sample day
     sample_day_trades = trades_data[:5] if len(trades_data) >= 5 else trades_data
@@ -1054,6 +1164,61 @@ def generate_dashboard():
             document.documentElement.classList.add('dark');
         }}
         
+        // Month navigation state
+        const allCalendarsData = {all_calendars_json_str};
+        const calendarMonthKeys = Object.keys(allCalendarsData).sort();
+        let currentMonthIndex = calendarMonthKeys.indexOf('{current_month_key}');
+        if (currentMonthIndex === -1) {{
+            currentMonthIndex = calendarMonthKeys.length - 1; // Default to last month if current not found
+        }}
+        
+        function getCurrentMonthKey() {{
+            return calendarMonthKeys[currentMonthIndex] || '{current_month_key}';
+        }}
+        
+        function renderHeatmapForMonth(monthKey) {{
+            const monthData = allCalendarsData[monthKey];
+            if (!monthData) return;
+            
+            // Update title
+            const titleElement = document.querySelector('.heatmap-header .card-title');
+            if (titleElement) {{
+                titleElement.textContent = monthData.name;
+            }}
+            
+            // Update heatmap cells
+            const heatmapGrid = document.querySelector('.heatmap-grid');
+            heatmapGrid.innerHTML = '';
+            
+            for (const cell of monthData.cells) {{
+                if (cell === null) {{
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'heatmap-cell heatmap-empty';
+                    heatmapGrid.appendChild(emptyDiv);
+                }} else {{
+                    const cellDiv = document.createElement('div');
+                    cellDiv.innerHTML = cell.html;
+                    heatmapGrid.appendChild(cellDiv.firstChild);
+                }}
+            }}
+        }}
+        
+        function prevMonth() {{
+            if (currentMonthIndex > 0) {{
+                currentMonthIndex--;
+                const monthKey = getCurrentMonthKey();
+                renderHeatmapForMonth(monthKey);
+            }}
+        }}
+        
+        function nextMonth() {{
+            if (currentMonthIndex < calendarMonthKeys.length - 1) {{
+                currentMonthIndex++;
+                const monthKey = getCurrentMonthKey();
+                renderHeatmapForMonth(monthKey);
+            }}
+        }}
+        
         // Day detail modal
         const intradayData = {intraday_json};
         
@@ -1340,6 +1505,8 @@ def generate_dashboard():
         duration_vs_pnl_json=duration_vs_pnl_json,
         modal_trades_table=trades_table_html,
         intraday_json=intraday_json,
+        all_calendars_json_str=all_calendars_json_str,
+        current_month_key=current_month_key,
     )
     
     DASHBOARD_FILE.write_text(html_content)
