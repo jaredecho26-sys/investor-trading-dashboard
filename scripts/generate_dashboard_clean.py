@@ -319,7 +319,6 @@ def generate_dashboard():
                     <td style="padding: 10px; font-size: 12px;">{roi_str}</td>
                     <td style="padding: 10px; font-size: 12px;">{r_str}</td>
                     <td style="padding: 10px; font-size: 12px;">{trade['strategy']}</td>
-                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
                 </tr>"""
     
     # Intraday progression JSON
@@ -800,7 +799,6 @@ def generate_dashboard():
                     <div style="font-size: 28px; font-weight: 700;" id="modalPnL">-$74.62</div>
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <button style="background: none; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary);" onclick="alert('Replay coming soon')">▶ Replay</button>
                     <button style="background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;" onclick="alert('Add note coming soon')">+ Add note</button>
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">JP</div>
                 </div>
@@ -866,7 +864,6 @@ def generate_dashboard():
                                 <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Net ROI</th>
                                 <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">R-Multiple</th>
                                 <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Strategy</th>
-                                <th style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Replay</th>
                             </tr>
                         </thead>
                         <tbody>
