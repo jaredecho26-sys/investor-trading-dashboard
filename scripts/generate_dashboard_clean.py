@@ -77,28 +77,61 @@ def parse_report_metrics(report_text):
 def generate_synthetic_trades(num_trades=157):
     """Generate synthetic trade data"""
     trades = []
+    tickers = ['SPY', 'QQQ', 'IWM', 'XLK', 'XLV', 'XLF', 'XLE', 'XLY', 'AAPL', 'MSFT']
+    sides = ['CALL', 'PUT']
+    instruments = ['SPY Call', 'SPY Put', 'QQQ Call', 'QQQ Put', 'SPY Iron Condor', 'QQQ Spread']
+    strategies = ['Delta Neutral', 'Directional', 'Earnings Play', 'Support/Resistance', 'Swing Trade']
+    
     for _ in range(num_trades):
-        entry_hour = random.randint(6, 16)
+        entry_hour = random.randint(9, 16)
         entry_minute = random.randint(0, 59)
-        pnl = random.gauss(50, 150)
-        roi = (pnl / random.uniform(500, 5000)) * 100
-        num_trades_today = random.randint(1, 20)
-        winners = random.randint(0, num_trades_today)
-        losers = num_trades_today - winners
+        pnl = random.gauss(-20, 100)
+        roi = (pnl / random.uniform(100, 2000)) * 100
+        r_multiple = pnl / random.uniform(50, 300) if pnl > 0 else -(abs(pnl) / random.uniform(50, 300))
         duration = random.randint(5, 480)
+        is_winner = pnl > 0
+        volume = random.randint(100, 500)
         
         trades.append({
             "entry_hour": entry_hour,
             "entry_minute": entry_minute,
+            "ticker": random.choice(tickers),
+            "side": random.choice(sides),
+            "instrument": random.choice(instruments),
             "pnl": pnl,
             "roi": roi,
+            "r_multiple": r_multiple,
             "duration": duration,
-            "trades": num_trades_today,
-            "winners": winners,
-            "losers": losers,
+            "is_winner": is_winner,
+            "volume": volume,
+            "strategy": random.choice(strategies),
         })
     
     return trades
+
+def generate_intraday_pnl_progression(trades_data):
+    """Generate cumulative P&L progression throughout the day"""
+    # Bucket trades by hour
+    hourly_pnl = {}
+    for trade in trades_data:
+        hour = trade["entry_hour"]
+        if hour not in hourly_pnl:
+            hourly_pnl[hour] = []
+        hourly_pnl[hour].append(trade["pnl"])
+    
+    # Generate cumulative P&L progression
+    progression = []
+    cumulative = 0
+    for hour in range(9, 17):
+        if hour in hourly_pnl:
+            cumulative += sum(hourly_pnl[hour])
+        progression.append({
+            "hour": hour,
+            "time_label": f"{hour}:00" if hour < 12 else ("12:00" if hour == 12 else f"{hour-12}:00"),
+            "cumulative_pnl": cumulative
+        })
+    
+    return progression
 
 def pst_time_from_hour_minute(hour, minute):
     """Convert 24-hour time to PST format like 6:30am"""
@@ -178,6 +211,7 @@ def generate_dashboard():
     
     # Synthetic data
     trades_data = generate_synthetic_trades(trades_total)
+    intraday_progression = generate_intraday_pnl_progression(trades_data)
     
     # Entry time analysis data
     entry_time_buckets = {}
@@ -266,7 +300,42 @@ def generate_dashboard():
     entry_time_pnls_json = json.dumps(entry_time_pnls)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
     
+    # Generate modal trades table HTML for a sample day
+    sample_day_trades = trades_data[:5] if len(trades_data) >= 5 else trades_data
+    trades_table_html = ""
+    for trade in sample_day_trades:
+        time_str = f"{trade['entry_hour']}:{trade['entry_minute']:02d}"
+        pnl_color = "#10B981" if trade["pnl"] >= 0 else "#EF4444"
+        pnl_str = f"+${trade['pnl']:.2f}" if trade["pnl"] >= 0 else f"-${abs(trade['pnl']):.2f}"
+        roi_str = f"{trade['roi']:+.2f}%"
+        r_str = f"{trade['r_multiple']:+.2f}"
+        
+        trades_table_html += f"""<tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">{time_str}</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">{trade['ticker']}</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">{trade['side']}</span></td>
+                    <td style="padding: 10px; font-size: 12px;">{trade['instrument']}</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: {pnl_color};">{pnl_str}</td>
+                    <td style="padding: 10px; font-size: 12px;">{roi_str}</td>
+                    <td style="padding: 10px; font-size: 12px;">{r_str}</td>
+                    <td style="padding: 10px; font-size: 12px;">{trade['strategy']}</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr>"""
+    
+    # Intraday progression JSON
+    intraday_json = json.dumps(intraday_progression)
+    
+    # Calculate day stats
+    day_total_trades = len(sample_day_trades)
+    day_winners = sum(1 for t in sample_day_trades if t["is_winner"])
+    day_losers = day_total_trades - day_winners
+    day_gross_pnl = sum(t["pnl"] for t in sample_day_trades)
+    day_volume = sum(t["volume"] for t in sample_day_trades)
+    day_profit_factor = abs(sum(t["pnl"] for t in sample_day_trades if t["pnl"] > 0) / sum(t["pnl"] for t in sample_day_trades if t["pnl"] < 0)) if sum(t["pnl"] for t in sample_day_trades if t["pnl"] < 0) != 0 else 0
+    day_win_rate = (day_winners / day_total_trades * 100) if day_total_trades > 0 else 0
+    
     # Build HTML with .format() method
+    # Build the final HTML format string
     html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -723,32 +792,94 @@ def generate_dashboard():
     
     <!-- DAY DETAIL MODAL -->
     <div class="modal" id="dayModal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="max-width: 1000px;">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
                 <div>
-                    <div class="modal-date" id="modalDate">Wed, Apr 01, 2026</div>
-                    <div class="modal-pnl" id="modalPnL" style="margin-top: 8px;">-$74.62</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;" id="modalDate">Wed, Apr 01, 2026</div>
+                    <div style="font-size: 28px; font-weight: 700;" id="modalPnL">-$74.62</div>
                 </div>
-                <button class="modal-close" onclick="closeDayDetail()">✕</button>
+                <div style="display: flex; gap: 12px;">
+                    <button style="background: none; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary);" onclick="alert('Replay coming soon')">▶ Replay</button>
+                    <button style="background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;" onclick="alert('Add note coming soon')">+ Add note</button>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">JP</div>
+                </div>
+                <button class="modal-close" onclick="closeDayDetail()" style="position: absolute; top: 16px; right: 16px;">✕</button>
             </div>
             
-            <div class="modal-stats">
-                <div class="stat-card">
-                    <div class="stat-card-label">Total Trades</div>
-                    <div class="stat-card-value" id="modalTrades">2</div>
+            <!-- Summary Section: Chart + Stats Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Intraday P&L Chart -->
+                <div>
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary);">Intraday P&L Progression</div>
+                    <div style="height: 200px;">
+                        <canvas id="intradayChart" style="width: 100% !important; height: 100% !important;"></canvas>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Winners / Losers</div>
-                    <div class="stat-card-value" id="modalWinLoss">0 / 2</div>
+                
+                <!-- Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Total Trades</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statTotalTrades">5</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Gross P&L</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statGrossPnL">$150.00</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Winners/Losers</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statWinLoss">3/2</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Commissions</div>
+                        <div style="font-size: 18px; font-weight: 700;">$0.00</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Win Rate</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statWinRate">60%</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Volume</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statVolume">1,500</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Profit Factor</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statProfitFactor">1.8x</div>
+                    </div>
+                    <div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Win Rate</div>
-                    <div class="stat-card-value" id="modalWinRate">0%</div>
+            </div>
+            
+            <!-- Trades Table -->
+            <div style="margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary);">Trades</div>
+                <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--border);">
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Open Time</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Ticker</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Side</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Instrument</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Net P&L</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Net ROI</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">R-Multiple</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Strategy</th>
+                                <th style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Replay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {modal_trades_table}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Commissions</div>
-                    <div class="stat-card-value">$0</div>
-                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 16px;">
+                <button style="background: none; border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="closeDayDetail()">Cancel</button>
+                <button style="background: var(--purple); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="alert('View details coming soon')">View Details</button>
             </div>
         </div>
     </div>
@@ -765,6 +896,8 @@ def generate_dashboard():
         }}
         
         // Day detail modal
+        const intradayData = {intraday_json};
+        
         function openDayDetail(date, pnl, trades) {{
             const winners = Math.floor(trades * 0.6);
             const losers = trades - winners;
@@ -773,11 +906,71 @@ def generate_dashboard():
             document.getElementById('modalDate').textContent = new Date(date).toLocaleDateString('en-US', {{ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }});
             document.getElementById('modalPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
             document.getElementById('modalPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
-            document.getElementById('modalTrades').textContent = trades;
-            document.getElementById('modalWinLoss').textContent = winners + ' / ' + losers;
-            document.getElementById('modalWinRate').textContent = winRate + '%';
+            document.getElementById('statTotalTrades').textContent = trades;
+            document.getElementById('statWinLoss').textContent = winners + ' / ' + losers;
+            document.getElementById('statWinRate').textContent = winRate + '%';
+            document.getElementById('statGrossPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+            document.getElementById('statGrossPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
+            
+            // Render intraday chart
+            renderIntradayChart();
             
             document.getElementById('dayModal').classList.add('open');
+        }}
+        
+        function renderIntradayChart() {{
+            const ctx = document.getElementById('intradayChart');
+            if (ctx.chart) {{
+                ctx.chart.destroy();
+            }}
+            
+            ctx.chart = new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: intradayData.map(d => d.time_label),
+                    datasets: [{{
+                        label: 'Cumulative P&L',
+                        data: intradayData.map(d => d.cumulative_pnl),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#252D3D',
+                            borderColor: '#374151',
+                            titleColor: '#F1F5F9',
+                            bodyColor: '#F1F5F9',
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {{
+                                label: function(context) {{
+                                    return 'P&L: $' + context.parsed.y.toFixed(2);
+                                }}
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            grid: {{ color: 'rgba(0,0,0,0.05)' }},
+                            ticks: {{ color: '#9CA3AF' }},
+                        }},
+                        x: {{
+                            grid: {{ display: false }},
+                            ticks: {{ color: '#9CA3AF' }},
+                        }}
+                    }}
+                }}
+            }});
         }}
         
         function closeDayDetail() {{
@@ -986,6 +1179,8 @@ def generate_dashboard():
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
         duration_vs_pnl_json=duration_vs_pnl_json,
+        modal_trades_table=trades_table_html,
+        intraday_json=intraday_json,
     )
     
     DASHBOARD_FILE.write_text(html_content)

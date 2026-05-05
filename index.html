@@ -454,32 +454,144 @@
     
     <!-- DAY DETAIL MODAL -->
     <div class="modal" id="dayModal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="max-width: 1000px;">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
                 <div>
-                    <div class="modal-date" id="modalDate">Wed, Apr 01, 2026</div>
-                    <div class="modal-pnl" id="modalPnL" style="margin-top: 8px;">-$74.62</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;" id="modalDate">Wed, Apr 01, 2026</div>
+                    <div style="font-size: 28px; font-weight: 700;" id="modalPnL">-$74.62</div>
                 </div>
-                <button class="modal-close" onclick="closeDayDetail()">✕</button>
+                <div style="display: flex; gap: 12px;">
+                    <button style="background: none; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary);" onclick="alert('Replay coming soon')">▶ Replay</button>
+                    <button style="background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;" onclick="alert('Add note coming soon')">+ Add note</button>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">JP</div>
+                </div>
+                <button class="modal-close" onclick="closeDayDetail()" style="position: absolute; top: 16px; right: 16px;">✕</button>
             </div>
             
-            <div class="modal-stats">
-                <div class="stat-card">
-                    <div class="stat-card-label">Total Trades</div>
-                    <div class="stat-card-value" id="modalTrades">2</div>
+            <!-- Summary Section: Chart + Stats Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Intraday P&L Chart -->
+                <div>
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary);">Intraday P&L Progression</div>
+                    <div style="height: 200px;">
+                        <canvas id="intradayChart" style="width: 100% !important; height: 100% !important;"></canvas>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Winners / Losers</div>
-                    <div class="stat-card-value" id="modalWinLoss">0 / 2</div>
+                
+                <!-- Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Total Trades</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statTotalTrades">5</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Gross P&L</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statGrossPnL">$150.00</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Winners/Losers</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statWinLoss">3/2</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Commissions</div>
+                        <div style="font-size: 18px; font-weight: 700;">$0.00</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Win Rate</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statWinRate">60%</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Volume</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statVolume">1,500</div>
+                    </div>
+                    <div style="background: var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600;">Profit Factor</div>
+                        <div style="font-size: 18px; font-weight: 700;" id="statProfitFactor">1.8x</div>
+                    </div>
+                    <div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Win Rate</div>
-                    <div class="stat-card-value" id="modalWinRate">0%</div>
+            </div>
+            
+            <!-- Trades Table -->
+            <div style="margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary);">Trades</div>
+                <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--border);">
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Open Time</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Ticker</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Side</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Instrument</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Net P&L</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Net ROI</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">R-Multiple</th>
+                                <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Strategy</th>
+                                <th style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Replay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">15:39</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">XLF</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">CALL</span></td>
+                    <td style="padding: 10px; font-size: 12px;">QQQ Spread</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: #10B981;">+$102.80</td>
+                    <td style="padding: 10px; font-size: 12px;">+16.44%</td>
+                    <td style="padding: 10px; font-size: 12px;">+1.09</td>
+                    <td style="padding: 10px; font-size: 12px;">Swing Trade</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr><tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">16:31</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">SPY</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">CALL</span></td>
+                    <td style="padding: 10px; font-size: 12px;">QQQ Put</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: #EF4444;">-$21.24</td>
+                    <td style="padding: 10px; font-size: 12px;">-1.40%</td>
+                    <td style="padding: 10px; font-size: 12px;">-0.08</td>
+                    <td style="padding: 10px; font-size: 12px;">Earnings Play</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr><tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">10:22</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">SPY</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">CALL</span></td>
+                    <td style="padding: 10px; font-size: 12px;">SPY Put</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: #EF4444;">-$45.02</td>
+                    <td style="padding: 10px; font-size: 12px;">-3.71%</td>
+                    <td style="padding: 10px; font-size: 12px;">-0.67</td>
+                    <td style="padding: 10px; font-size: 12px;">Swing Trade</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr><tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">9:42</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">XLK</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">CALL</span></td>
+                    <td style="padding: 10px; font-size: 12px;">QQQ Put</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: #EF4444;">-$76.79</td>
+                    <td style="padding: 10px; font-size: 12px;">-24.15%</td>
+                    <td style="padding: 10px; font-size: 12px;">-0.33</td>
+                    <td style="padding: 10px; font-size: 12px;">Delta Neutral</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr><tr>
+                    <td style="padding: 10px; font-size: 12px; color: var(--text-secondary);">9:02</td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px;">XLV</span></td>
+                    <td style="padding: 10px; font-size: 12px;"><span style="background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px;">PUT</span></td>
+                    <td style="padding: 10px; font-size: 12px;">SPY Call</td>
+                    <td style="padding: 10px; font-size: 12px; font-weight: 600; color: #10B981;">+$34.16</td>
+                    <td style="padding: 10px; font-size: 12px;">+2.04%</td>
+                    <td style="padding: 10px; font-size: 12px;">+0.12</td>
+                    <td style="padding: 10px; font-size: 12px;">Earnings Play</td>
+                    <td style="padding: 10px; font-size: 12px; text-align: center;"><button style="background: none; border: none; cursor: pointer; font-size: 14px;">▶</button></td>
+                </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">Commissions</div>
-                    <div class="stat-card-value">$0</div>
-                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 16px;">
+                <button style="background: none; border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="closeDayDetail()">Cancel</button>
+                <button style="background: var(--purple); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="alert('View details coming soon')">View Details</button>
             </div>
         </div>
     </div>
@@ -496,6 +608,8 @@
         }
         
         // Day detail modal
+        const intradayData = [{"hour": 9, "time_label": "9:00", "cumulative_pnl": -621.8931252857479}, {"hour": 10, "time_label": "10:00", "cumulative_pnl": -1265.8330273515512}, {"hour": 11, "time_label": "11:00", "cumulative_pnl": -3058.5516898846977}, {"hour": 12, "time_label": "12:00", "cumulative_pnl": -3734.2430807857445}, {"hour": 13, "time_label": "1:00", "cumulative_pnl": -3369.1706857282497}, {"hour": 14, "time_label": "2:00", "cumulative_pnl": -3476.2578493597453}, {"hour": 15, "time_label": "3:00", "cumulative_pnl": -4156.4473128569625}, {"hour": 16, "time_label": "4:00", "cumulative_pnl": -4230.541972858838}];
+        
         function openDayDetail(date, pnl, trades) {
             const winners = Math.floor(trades * 0.6);
             const losers = trades - winners;
@@ -504,11 +618,71 @@
             document.getElementById('modalDate').textContent = new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
             document.getElementById('modalPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
             document.getElementById('modalPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
-            document.getElementById('modalTrades').textContent = trades;
-            document.getElementById('modalWinLoss').textContent = winners + ' / ' + losers;
-            document.getElementById('modalWinRate').textContent = winRate + '%';
+            document.getElementById('statTotalTrades').textContent = trades;
+            document.getElementById('statWinLoss').textContent = winners + ' / ' + losers;
+            document.getElementById('statWinRate').textContent = winRate + '%';
+            document.getElementById('statGrossPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+            document.getElementById('statGrossPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
+            
+            // Render intraday chart
+            renderIntradayChart();
             
             document.getElementById('dayModal').classList.add('open');
+        }
+        
+        function renderIntradayChart() {
+            const ctx = document.getElementById('intradayChart');
+            if (ctx.chart) {
+                ctx.chart.destroy();
+            }
+            
+            ctx.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: intradayData.map(d => d.time_label),
+                    datasets: [{
+                        label: 'Cumulative P&L',
+                        data: intradayData.map(d => d.cumulative_pnl),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#252D3D',
+                            borderColor: '#374151',
+                            titleColor: '#F1F5F9',
+                            bodyColor: '#F1F5F9',
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'P&L: $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { color: '#9CA3AF' },
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9CA3AF' },
+                        }
+                    }
+                }
+            });
         }
         
         function closeDayDetail() {
@@ -583,8 +757,8 @@
         });
         
         // Entry Time Analysis Chart with PST labels
-        const entryTimeLabels = ["10:00am", "10:30am", "11:00am", "11:30am", "12:00pm", "12:30pm", "1:00pm", "1:30pm", "2:00pm", "2:30pm", "3:30pm", "4:00pm", "4:30pm", "6:00am", "6:30am", "7:00am", "7:30am", "8:00am", "8:30am", "9:00am", "9:30am"];
-        const entryTimePnLs = [79.14325717984838, 82.3896134085409, -45.725412171352076, 152.61096276122558, 62.421850884120275, 130.08640014582656, 52.73168958034781, -22.48750384847575, 3.478047966295296, 133.89578237799634, 29.693426430296924, 3.638037161879987, 51.12679697625231, 96.60167551614393, 38.29551426432453, 85.93086991104059, -12.591074848436826, 56.16505604594836, 42.06293886510282, 48.28680296661258, -45.55307537027381];
+        const entryTimeLabels = ["10:00am", "10:30am", "11:00am", "11:30am", "12:00pm", "12:30pm", "1:00pm", "1:30pm", "2:00pm", "2:30pm", "3:00pm", "3:30pm", "4:00pm", "4:30pm", "9:00am", "9:30am"];
+        const entryTimePnLs = [-42.50449746809731, -35.27808598334655, -67.11071975049914, -84.90872748418958, -28.9218848495317, -21.407634846938176, 43.54047107875819, 8.612728215169671, 13.273998302504786, -32.36473547914837, -19.323446891682483, -29.887206719801835, 29.555191156100943, -40.14014258494025, -63.59099100520887, 8.623086196838845];
         
         const entryCtx = document.getElementById('entryTimeChart').getContext('2d');
         new Chart(entryCtx, {
@@ -632,7 +806,7 @@
         });
         
         // Duration vs P&L Scatter Chart
-        const durationData = [{"duration": 239, "pnl": 197.94304693764784}, {"duration": 112, "pnl": 70.73359303997046}, {"duration": 412, "pnl": -17.83792674163236}, {"duration": 97, "pnl": 143.0429486037043}, {"duration": 8, "pnl": 101.45921407587755}, {"duration": 344, "pnl": 92.0604950421187}, {"duration": 267, "pnl": 226.84044532963773}, {"duration": 219, "pnl": -6.94442173822317}, {"duration": 225, "pnl": 39.55905748910186}, {"duration": 108, "pnl": -143.65560549368894}, {"duration": 36, "pnl": 82.45669032281279}, {"duration": 124, "pnl": 331.19054453938}, {"duration": 328, "pnl": -220.32771474979205}, {"duration": 259, "pnl": 11.596844794928195}, {"duration": 408, "pnl": 27.613491078944758}, {"duration": 271, "pnl": 343.1509665706371}, {"duration": 271, "pnl": 37.50586472770604}, {"duration": 294, "pnl": -147.10147963610456}, {"duration": 323, "pnl": -41.262032507884044}, {"duration": 301, "pnl": -185.6976390150685}, {"duration": 113, "pnl": 199.03692667338342}, {"duration": 192, "pnl": 23.799223951831205}, {"duration": 214, "pnl": 250.95034671911688}, {"duration": 274, "pnl": 9.776671613773502}, {"duration": 185, "pnl": 243.94277352644303}, {"duration": 17, "pnl": -34.40732795014311}, {"duration": 267, "pnl": 56.94909867896857}, {"duration": 211, "pnl": 88.70506317756742}, {"duration": 111, "pnl": -30.640006763253197}, {"duration": 68, "pnl": -131.18565895417052}, {"duration": 480, "pnl": 190.99923764336205}, {"duration": 144, "pnl": 27.425406882990334}, {"duration": 301, "pnl": 255.95958625412004}, {"duration": 284, "pnl": -255.6894557521274}, {"duration": 308, "pnl": -107.88553913501826}, {"duration": 377, "pnl": 54.832576351690896}, {"duration": 382, "pnl": -120.68646472980853}, {"duration": 199, "pnl": 162.9901924383825}, {"duration": 93, "pnl": 223.1800968217459}, {"duration": 249, "pnl": 138.82491681405395}, {"duration": 140, "pnl": 21.962750770499124}, {"duration": 93, "pnl": 44.62484577481569}, {"duration": 139, "pnl": -14.544282148556704}, {"duration": 434, "pnl": -70.16597212730689}, {"duration": 52, "pnl": -30.318924084496956}, {"duration": 432, "pnl": -25.340061615781323}, {"duration": 41, "pnl": 280.1045717931878}, {"duration": 234, "pnl": 250.35137278086137}, {"duration": 194, "pnl": -127.61224954371872}, {"duration": 364, "pnl": 7.137946862654253}, {"duration": 67, "pnl": 125.84763464658273}, {"duration": 135, "pnl": -146.999057777792}, {"duration": 401, "pnl": -232.03027605596156}, {"duration": 90, "pnl": -40.4352798433528}, {"duration": 421, "pnl": -206.27410440710003}, {"duration": 396, "pnl": -163.82122322271647}, {"duration": 150, "pnl": -7.801952490522126}, {"duration": 284, "pnl": 224.11436216067563}, {"duration": 92, "pnl": 106.91733565475609}, {"duration": 120, "pnl": 157.53863089715898}, {"duration": 15, "pnl": 152.17945195009233}, {"duration": 82, "pnl": 25.409465828789777}, {"duration": 299, "pnl": 293.7715431228718}, {"duration": 168, "pnl": 274.0335989318875}, {"duration": 391, "pnl": 118.6446920993472}, {"duration": 174, "pnl": 264.4611154909061}, {"duration": 124, "pnl": -136.6947981060722}, {"duration": 203, "pnl": 80.39850950718869}, {"duration": 119, "pnl": 227.74790362975804}, {"duration": 371, "pnl": -95.13740928153797}, {"duration": 378, "pnl": 110.79049636844061}, {"duration": 438, "pnl": -24.957301942859885}, {"duration": 249, "pnl": 86.67214882020406}, {"duration": 68, "pnl": -122.55535934086691}, {"duration": 42, "pnl": 77.06362910307774}, {"duration": 184, "pnl": -91.26380137938517}, {"duration": 40, "pnl": 195.12041386948465}, {"duration": 201, "pnl": 44.035142914146256}, {"duration": 475, "pnl": 42.15020600943691}, {"duration": 15, "pnl": 159.22366476931023}, {"duration": 320, "pnl": 160.10257269475517}, {"duration": 318, "pnl": 163.4107936880569}, {"duration": 275, "pnl": -149.01198520548022}, {"duration": 477, "pnl": 67.4280283651108}, {"duration": 7, "pnl": -125.32958179341844}, {"duration": 313, "pnl": 50.57251978253279}, {"duration": 264, "pnl": -156.3071772041557}, {"duration": 114, "pnl": 73.14834995341582}, {"duration": 145, "pnl": 267.5034107440954}, {"duration": 40, "pnl": 96.27307551543288}, {"duration": 291, "pnl": -6.6925869441666705}, {"duration": 125, "pnl": -162.77834976977525}, {"duration": 171, "pnl": -102.16478517000749}, {"duration": 138, "pnl": 227.78148322389458}, {"duration": 407, "pnl": 79.0468732365852}, {"duration": 384, "pnl": 57.69959404698426}, {"duration": 82, "pnl": 74.44835218717593}, {"duration": 471, "pnl": 76.6467371779867}, {"duration": 222, "pnl": 81.93236585010133}, {"duration": 185, "pnl": 287.909695296438}, {"duration": 87, "pnl": 68.6444322684487}, {"duration": 122, "pnl": 73.07564468806002}, {"duration": 156, "pnl": 6.097273537417841}, {"duration": 206, "pnl": -113.3549751025898}, {"duration": 143, "pnl": 127.17462441111994}, {"duration": 61, "pnl": 153.0622107641674}, {"duration": 137, "pnl": 26.601401761277902}, {"duration": 164, "pnl": -155.65677569360045}, {"duration": 262, "pnl": 37.521795075657494}, {"duration": 372, "pnl": -223.36259251394438}, {"duration": 386, "pnl": 116.1473739458481}, {"duration": 411, "pnl": -1.2118099784349425}, {"duration": 21, "pnl": 81.76979720687788}, {"duration": 463, "pnl": 267.40540017445767}, {"duration": 283, "pnl": 131.08980276042234}, {"duration": 154, "pnl": -43.057080784201034}, {"duration": 331, "pnl": 129.32024360570233}, {"duration": 254, "pnl": 173.98958056656022}, {"duration": 8, "pnl": 6.994185389867482}, {"duration": 359, "pnl": 51.25122108044103}, {"duration": 383, "pnl": -52.82185195699937}, {"duration": 180, "pnl": 22.14742198395912}, {"duration": 264, "pnl": -136.60494532765492}, {"duration": 161, "pnl": 94.26335772900809}, {"duration": 268, "pnl": 157.37769890683708}, {"duration": 59, "pnl": -25.517079542210723}, {"duration": 454, "pnl": -60.57876007451878}, {"duration": 289, "pnl": 164.87120313681248}, {"duration": 319, "pnl": 123.75823080394835}, {"duration": 441, "pnl": 66.25034275499848}, {"duration": 164, "pnl": -60.605207974288376}, {"duration": 304, "pnl": 122.69398344530173}, {"duration": 33, "pnl": 189.96834305737568}, {"duration": 320, "pnl": -53.60565875588365}, {"duration": 292, "pnl": 66.93496808464756}, {"duration": 445, "pnl": -131.90505763402135}, {"duration": 160, "pnl": 103.57594443450947}, {"duration": 30, "pnl": -4.308900339892425}, {"duration": 186, "pnl": 173.19442833390326}, {"duration": 87, "pnl": -92.79626051983095}, {"duration": 24, "pnl": -205.56065583390432}, {"duration": 196, "pnl": 184.54516990243746}, {"duration": 62, "pnl": 79.24016729178328}, {"duration": 53, "pnl": -100.58770881939026}, {"duration": 166, "pnl": 140.31885291814044}, {"duration": 164, "pnl": 95.95979663204973}, {"duration": 210, "pnl": -85.61788067311434}, {"duration": 191, "pnl": -136.33040135174693}, {"duration": 412, "pnl": -25.791818439178854}, {"duration": 141, "pnl": -41.97826305985224}, {"duration": 346, "pnl": 214.46983429419512}, {"duration": 325, "pnl": 81.27654838607253}, {"duration": 427, "pnl": -41.15127021922166}, {"duration": 319, "pnl": 105.73705640325076}, {"duration": 464, "pnl": 88.50457517870134}, {"duration": 438, "pnl": 168.6384451967358}, {"duration": 348, "pnl": 138.8098829136087}];
+        const durationData = [{"duration": 245, "pnl": 102.80022834208772}, {"duration": 259, "pnl": -21.242571414765912}, {"duration": 308, "pnl": -45.021515518889856}, {"duration": 138, "pnl": -76.79267593142012}, {"duration": 263, "pnl": 34.164348581550705}, {"duration": 192, "pnl": -15.594190810392169}, {"duration": 230, "pnl": 32.481370223036905}, {"duration": 18, "pnl": -110.25031052326416}, {"duration": 264, "pnl": -25.992721904426872}, {"duration": 269, "pnl": -168.84439461133493}, {"duration": 340, "pnl": -112.42965840122454}, {"duration": 407, "pnl": -110.65326247560114}, {"duration": 303, "pnl": 23.29541668722134}, {"duration": 339, "pnl": -48.404712337842724}, {"duration": 302, "pnl": -136.2066089966238}, {"duration": 197, "pnl": -123.84948549052606}, {"duration": 91, "pnl": -144.82978740689902}, {"duration": 269, "pnl": -2.9382123931897404}, {"duration": 48, "pnl": -143.7540680604415}, {"duration": 302, "pnl": 61.06365733181315}, {"duration": 399, "pnl": 1.2185124250468995}, {"duration": 159, "pnl": -151.23625260425206}, {"duration": 16, "pnl": -313.7154169486998}, {"duration": 327, "pnl": -15.71937676399926}, {"duration": 147, "pnl": -125.66442202599814}, {"duration": 477, "pnl": -69.7257752461003}, {"duration": 290, "pnl": 55.52164697300758}, {"duration": 352, "pnl": 43.61029985679517}, {"duration": 449, "pnl": -24.083599519350436}, {"duration": 322, "pnl": 127.78367390117262}, {"duration": 101, "pnl": 218.1980123143085}, {"duration": 311, "pnl": -38.75564872475691}, {"duration": 369, "pnl": 130.49580097248986}, {"duration": 351, "pnl": -45.928188227494}, {"duration": 335, "pnl": 187.8481010273848}, {"duration": 220, "pnl": -93.17517422462456}, {"duration": 25, "pnl": 146.96121161982674}, {"duration": 388, "pnl": 168.77933685646275}, {"duration": 409, "pnl": -2.829236380158349}, {"duration": 418, "pnl": -169.3011503969048}, {"duration": 252, "pnl": -7.241844505955482}, {"duration": 134, "pnl": -21.101423328239385}, {"duration": 245, "pnl": -86.60655145034762}, {"duration": 383, "pnl": -81.15895301294913}, {"duration": 329, "pnl": -25.068073478632357}, {"duration": 272, "pnl": 75.1623129277922}, {"duration": 145, "pnl": 24.993428801256094}, {"duration": 280, "pnl": 78.83866387007258}, {"duration": 54, "pnl": 64.7124757844652}, {"duration": 133, "pnl": -9.50000616920825}, {"duration": 64, "pnl": -32.26866532848601}, {"duration": 352, "pnl": 108.88891307493563}, {"duration": 130, "pnl": -124.06316314695702}, {"duration": 72, "pnl": -26.39872060629544}, {"duration": 251, "pnl": -17.984734495113184}, {"duration": 40, "pnl": -92.39035519130074}, {"duration": 235, "pnl": -33.513097629364395}, {"duration": 220, "pnl": 15.865874057852956}, {"duration": 478, "pnl": -160.46940199688234}, {"duration": 241, "pnl": 208.10933696866803}, {"duration": 224, "pnl": -60.07271618538494}, {"duration": 308, "pnl": -211.03807161172335}, {"duration": 455, "pnl": -46.982372921164405}, {"duration": 419, "pnl": 74.9169583900509}, {"duration": 310, "pnl": 121.48986358680216}, {"duration": 236, "pnl": -2.187180436626001}, {"duration": 445, "pnl": -75.54495142666156}, {"duration": 345, "pnl": 129.42083943980523}, {"duration": 41, "pnl": -108.10173614943072}, {"duration": 427, "pnl": -77.60949235156659}, {"duration": 77, "pnl": -48.2613722321276}, {"duration": 206, "pnl": 1.0493120738294408}, {"duration": 417, "pnl": 168.8018217232528}, {"duration": 82, "pnl": -42.87521832375255}, {"duration": 16, "pnl": -148.41355817445438}, {"duration": 410, "pnl": 101.24755705200592}, {"duration": 215, "pnl": 115.73274162015721}, {"duration": 389, "pnl": 41.44173896469528}, {"duration": 44, "pnl": -64.93777507397425}, {"duration": 245, "pnl": -98.50474179899163}, {"duration": 477, "pnl": -29.703625073208332}, {"duration": 323, "pnl": 9.179728513959503}, {"duration": 90, "pnl": 68.12521656849384}, {"duration": 172, "pnl": -123.89129142710973}, {"duration": 300, "pnl": 31.117564240940283}, {"duration": 148, "pnl": 50.55019893883144}, {"duration": 86, "pnl": 18.000926899345615}, {"duration": 153, "pnl": 65.67181909695472}, {"duration": 156, "pnl": -257.96807503767116}, {"duration": 358, "pnl": -15.478935023027864}, {"duration": 72, "pnl": -212.20198300210626}, {"duration": 249, "pnl": -126.59822033940011}, {"duration": 75, "pnl": 41.09424741123976}, {"duration": 266, "pnl": -146.35747403621764}, {"duration": 110, "pnl": -78.19859686823781}, {"duration": 269, "pnl": -35.09019100073903}, {"duration": 63, "pnl": -39.9796771412928}, {"duration": 254, "pnl": 102.40148776189051}, {"duration": 65, "pnl": -163.26658525164495}, {"duration": 468, "pnl": -10.12091147505977}, {"duration": 35, "pnl": 20.757649945273798}, {"duration": 20, "pnl": -209.13733802764253}, {"duration": 475, "pnl": -219.98405442195266}, {"duration": 428, "pnl": -37.83924517527958}, {"duration": 79, "pnl": 11.896198967545796}, {"duration": 339, "pnl": 28.534977711418264}, {"duration": 108, "pnl": -33.61034333694477}, {"duration": 323, "pnl": 100.33006966179232}, {"duration": 313, "pnl": -150.91328506981193}, {"duration": 229, "pnl": -218.67524826594467}, {"duration": 467, "pnl": -154.074051592469}, {"duration": 159, "pnl": -3.7255157423866088}, {"duration": 287, "pnl": -54.23291052310395}, {"duration": 205, "pnl": -149.88811832164347}, {"duration": 21, "pnl": 80.89928650359252}, {"duration": 174, "pnl": -88.96678136967404}, {"duration": 317, "pnl": 16.392209462918387}, {"duration": 294, "pnl": -60.05104155576948}, {"duration": 446, "pnl": -32.23429549239653}, {"duration": 472, "pnl": -107.9620431298212}, {"duration": 117, "pnl": 17.056494202333923}, {"duration": 269, "pnl": 18.6597994960567}, {"duration": 69, "pnl": -62.82538391991119}, {"duration": 198, "pnl": -46.98785290024031}, {"duration": 61, "pnl": -152.0255709810032}, {"duration": 385, "pnl": -69.43488033294678}, {"duration": 158, "pnl": -5.3249103148905395}, {"duration": 61, "pnl": -189.8453492849457}, {"duration": 45, "pnl": 64.45018340237984}, {"duration": 387, "pnl": -27.917631056428068}, {"duration": 109, "pnl": -160.74735646374015}, {"duration": 73, "pnl": -11.430128720287962}, {"duration": 301, "pnl": 83.89131980106411}, {"duration": 279, "pnl": 88.77927175150863}, {"duration": 125, "pnl": -24.83833812594086}, {"duration": 10, "pnl": -37.09265041995859}, {"duration": 74, "pnl": 32.31095839865133}, {"duration": 419, "pnl": -129.96315473868253}, {"duration": 36, "pnl": 36.58922992140698}, {"duration": 372, "pnl": -89.60525408797534}, {"duration": 397, "pnl": -144.15204581336775}, {"duration": 190, "pnl": -2.9377370413903208}, {"duration": 430, "pnl": -18.133405622879522}, {"duration": 321, "pnl": -14.053069511453579}, {"duration": 457, "pnl": 52.00559557626539}, {"duration": 409, "pnl": -71.74112978528215}, {"duration": 394, "pnl": 129.1336380189134}, {"duration": 462, "pnl": 71.24602107488462}, {"duration": 444, "pnl": 69.92146953346278}, {"duration": 189, "pnl": -24.510825281299173}, {"duration": 282, "pnl": -104.08253699059959}, {"duration": 13, "pnl": -122.67443513085377}, {"duration": 319, "pnl": 128.01008447752946}, {"duration": 365, "pnl": -118.86214285243402}, {"duration": 48, "pnl": 5.181163928246981}, {"duration": 212, "pnl": 122.33511303849323}, {"duration": 23, "pnl": -31.38913117024041}];
         
         const durationCtx = document.getElementById('durationChart').getContext('2d');
         new Chart(durationCtx, {
