@@ -526,7 +526,9 @@ def generate_dashboard():
         else:
             return "#DC2626"
     
-    # Prepare scatter data: individual trades with time and P&L
+    # Prepare scatter data: individual trades with time (P&L not available per-trade from API)
+    # Note: Schwab API only provides order entry times, not exit times or individual trade P&L
+    # Per-trade P&L requires matching BUY/SELL pairs and tracking exit prices (not in API response)
     entry_time_scatter_data = []
     for trade in trades_data:
         entry_hour = trade["entry_hour"]
@@ -540,11 +542,13 @@ def generate_dashboard():
         # Convert time label to decimal hours for x-axis plotting
         x_value = entry_hour + entry_minute / 60.0
         
+        # Use 0 for individual trade P&L since we don't have exit data
+        # Daily P&L is tracked at the day level (in calendar + modal)
         entry_time_scatter_data.append({
             "x": x_value,
-            "y": trade["pnl"],
+            "y": 0,  # Individual trade P&L not available from API
             "time": time_label,
-            "color": "#10B981" if trade["pnl"] >= 0 else "#EF4444"
+            "color": "#9CA3AF"  # Gray (neutral) since P&L unknown per trade
         })
     
     # Legacy support: also keep bucketed labels for backward compatibility
