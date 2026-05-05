@@ -1065,13 +1065,6 @@ def generate_dashboard():
                     <canvas id="entryTimeChart"></canvas>
                 </div>
             </div>
-            
-            <div class="card">
-                <div class="card-title">Duration vs P&L</div>
-                <div class="chart-container">
-                    <canvas id="durationChart"></canvas>
-                </div>
-            </div>
         </div>
         
         <!-- MONTHLY HEATMAP -->
@@ -1468,66 +1461,6 @@ def generate_dashboard():
                 }}
             }}
         }});
-        
-        // Duration vs P&L Scatter Chart
-        const durationData = {duration_vs_pnl_json};
-        
-        const durationCtx = document.getElementById('durationChart').getContext('2d');
-        new Chart(durationCtx, {{
-            type: 'scatter',
-            data: {{
-                datasets: [{{
-                    label: 'Trades',
-                    data: durationData.map(function(d) {{ return {{ x: d.duration, y: d.pnl }}; }}),
-                    backgroundColor: 'rgba(99, 102, 241, 0.6)',
-                    borderColor: '#6366F1',
-                    borderWidth: 1,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                }}]
-            }},
-            options: {{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {{
-                    legend: {{ display: false }},
-                    tooltip: {{
-                        backgroundColor: '#252D3D',
-                        borderColor: '#374151',
-                        titleColor: '#F1F5F9',
-                        bodyColor: '#F1F5F9',
-                        padding: 12,
-                        callbacks: {{
-                            label: function(context) {{
-                                return 'Duration: ' + context.parsed.x + 'min, P&L: $' + context.parsed.y.toFixed(2);
-                            }}
-                        }}
-                    }}
-                }},
-                scales: {{
-                    y: {{
-                        title: {{ display: true, text: 'P&L ($)', color: '#9CA3AF', font: {{ size: 12 }} }},
-                        grid: {{ color: 'rgba(0,0,0,0.05)' }},
-                        ticks: {{
-                            color: '#9CA3AF',
-                            callback: function(value) {{
-                                return '$' + value.toFixed(0);
-                            }}
-                        }}
-                    }},
-                    x: {{
-                        title: {{ display: true, text: 'Trade Duration', color: '#9CA3AF', font: {{ size: 12 }} }},
-                        grid: {{ color: 'rgba(0,0,0,0.05)' }},
-                        ticks: {{
-                            color: '#9CA3AF',
-                            callback: function(value) {{
-                                return formatDuration(value);
-                            }}
-                        }}
-                    }}
-                }}
-            }}
-        }});
     </script>
 </body>
 </html>
@@ -1555,7 +1488,6 @@ def generate_dashboard():
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
         entry_time_scatter_json=entry_time_scatter_json,
-        duration_vs_pnl_json=duration_vs_pnl_json,
         intraday_json=intraday_json,
         all_calendars_json_str=all_calendars_json_str,
         current_month_key=current_month_key,
