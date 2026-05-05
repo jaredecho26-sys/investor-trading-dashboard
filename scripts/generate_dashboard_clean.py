@@ -512,14 +512,35 @@ def generate_dashboard():
         else:
             return "#DC2626"
     
-    # Prepare entry time data for chart - sorted chronologically (6:30am to 1:00pm)
+    # Prepare scatter data: individual trades with time and P&L
+    entry_time_scatter_data = []
+    for trade in trades_data:
+        entry_hour = trade["entry_hour"]
+        entry_minute = trade["entry_minute"]
+        
+        # Only include trades within market hours (6:30am to 1:00pm)
+        if entry_hour < 6 or (entry_hour == 6 and entry_minute < 30) or entry_hour > 13:
+            continue
+        
+        time_label = pst_time_from_hour_minute(entry_hour, entry_minute)
+        # Convert time label to decimal hours for x-axis plotting
+        x_value = entry_hour + entry_minute / 60.0
+        
+        entry_time_scatter_data.append({
+            "x": x_value,
+            "y": trade["pnl"],
+            "time": time_label,
+            "color": "#10B981" if trade["pnl"] >= 0 else "#EF4444"
+        })
+    
+    # Legacy support: also keep bucketed labels for backward compatibility
     entry_times_sorted = []
     for hour in range(6, 14):
         for minute in [0, 30]:
             if hour == 6 and minute == 0:
-                continue  # Skip 6:00am
+                continue
             if hour == 14:
-                continue  # Skip 2:00pm and beyond
+                continue
             bucket_key = f"{hour}:{minute:02d}"
             if bucket_key in entry_time_buckets:
                 entry_times_sorted.append((bucket_key, entry_time_buckets[bucket_key]))
@@ -550,6 +571,7 @@ def generate_dashboard():
     chart_data_json = json.dumps(chart_data)
     entry_time_labels_json = json.dumps(entry_time_labels)
     entry_time_pnls_json = json.dumps(entry_time_pnls)
+    entry_time_scatter_json = json.dumps(entry_time_scatter_data)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
     
     # Embed full orders cache for modal to look up real trades by date
@@ -1394,27 +1416,26 @@ def generate_dashboard():
             }}
         }});
         
-        // Entry Time Analysis Chart with PST labels
-        const entryTimeLabels = {entry_time_labels_json};
-        const entryTimePnLs = {entry_time_pnls_json};
+        // Entry Time Analysis Chart - Scatter plot of individual trades
+        const entryTimeScatterData = {entry_time_scatter_json};
         
         const entryCtx = document.getElementById('entryTimeChart').getContext('2d');
         new Chart(entryCtx, {{
-            type: 'bar',
+            type: 'scatter',
             data: {{
-                labels: entryTimeLabels,
                 datasets: [{{
-                    label: 'Avg P&L',
-                    data: entryTimePnLs,
-                    backgroundColor: entryTimePnLs.map(v => v >= 0 ? '#10B981' : '#EF4444'),
-                    borderRadius: 6,
-                    borderSkipped: false,
+                    label: 'Trade P&L by Entry Time',
+                    data: entryTimeScatterData.map(t => ({{ x: t.x, y: t.y }})),
+                    backgroundColor: entryTimeScatterData.map(t => t.color),
+                    borderColor: entryTimeScatterData.map(t => t.color),
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
                 }}]
             }},
             options: {{
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'x',
                 plugins: {{
                     legend: {{ display: false }},
                     tooltip: {{
@@ -1425,7 +1446,8 @@ def generate_dashboard():
                         padding: 12,
                         callbacks: {{
                             label: function(context) {{
-                                return 'Avg P&L: $' + context.parsed.y.toFixed(2);
+                                const idx = context.dataIndex;
+                                return entryTimeScatterData[idx].time + ': $' + context.parsed.y.toFixed(2);
                             }}
                         }}
                     }}
@@ -1434,10 +1456,14 @@ def generate_dashboard():
                     y: {{
                         grid: {{ color: 'rgba(0,0,0,0.05)' }},
                         ticks: {{ color: '#9CA3AF' }},
+                        title: {{ display: true, text: 'P&L ($)', color: '#9CA3AF' }}
                     }},
                     x: {{
                         grid: {{ display: false }},
                         ticks: {{ color: '#9CA3AF' }},
+                        title: {{ display: true, text: 'Entry Time (PST)', color: '#9CA3AF' }},
+                        min: 6.5,
+                        max: 13.5,
                     }}
                 }}
             }}
@@ -1528,6 +1554,7 @@ def generate_dashboard():
         chart_data_json=chart_data_json,
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
+        entry_time_scatter_json=entry_time_scatter_json,
         duration_vs_pnl_json=duration_vs_pnl_json,
         intraday_json=intraday_json,
         all_calendars_json_str=all_calendars_json_str,
