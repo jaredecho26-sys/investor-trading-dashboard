@@ -643,6 +643,47 @@ def generate_dashboard():
     entry_time_scatter_json = json.dumps(entry_time_scatter_data)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
     
+    # Build recent trades list (SELL orders = closed trades)
+    sell_orders = [o for o in orders if o.get('side') == 'SELL']
+    sell_orders_sorted = sorted(sell_orders, key=lambda x: x.get('orderTime', ''), reverse=True)
+    
+    recent_trades_html = ""
+    for idx, order in enumerate(sell_orders_sorted[:10]):  # Show 10 most recent
+        order_date = order.get('order_date', 'N/A')
+        symbol = order.get('symbol', 'UNKNOWN').split()[0]  # Base symbol
+        
+        # Get daily P&L for that date
+        daily_pnl = daily_pnl_map.get(order_date, 0)
+        pnl_color = "#10B981" if daily_pnl >= 0 else "#EF4444"
+        pnl_str = f"${daily_pnl:,.2f}" if daily_pnl >= 0 else f"-${abs(daily_pnl):,.2f}"
+        
+        recent_trades_html += f'''<tr style="border-bottom: 1px solid var(--border);
+            {"background: rgba(0,0,0,0.02);" if idx % 2 == 0 else ""}
+        ">
+            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date}</td>
+            <td style="padding: 12px; font-size: 12px; font-weight: 600;">{symbol}</td>
+            <td style="padding: 12px; font-size: 12px; font-weight: 600; color: {pnl_color};">{pnl_str}</td>
+        </tr>'''
+    
+    view_more_btn = '<a href="trade-history.html" style="display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--purple); color: white; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">View more →</a>'
+    
+    # Build full trade history table (for separate page)
+    full_trades_html = ""
+    for idx, order in enumerate(sell_orders_sorted):  # All SELL orders
+        order_date = order.get('order_date', 'N/A')
+        symbol = order.get('symbol', 'UNKNOWN').split()[0]
+        daily_pnl = daily_pnl_map.get(order_date, 0)
+        pnl_color = "#10B981" if daily_pnl >= 0 else "#EF4444"
+        pnl_str = f"${daily_pnl:,.2f}" if daily_pnl >= 0 else f"-${abs(daily_pnl):,.2f}"
+        
+        full_trades_html += f'''<tr style="border-bottom: 1px solid var(--border);
+            {"background: rgba(0,0,0,0.02);" if idx % 2 == 0 else ""}
+        ">
+            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date}</td>
+            <td style="padding: 12px; font-size: 12px; font-weight: 600;">{symbol}</td>
+            <td style="padding: 12px; font-size: 12px; font-weight: 600; color: {pnl_color};">{pnl_str}</td>
+        </tr>'''
+    
     # Embed full orders cache for modal to look up real trades by date
     all_orders_json = json.dumps(orders if orders else [])
     
@@ -1154,6 +1195,28 @@ def generate_dashboard():
             </div>
         </div>
         
+        <!-- RECENT TRADES -->
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-title">Recent trades</div>
+            <div style="max-height: 280px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="position: sticky; top: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border);">
+                        <tr>
+                            <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Close Date</th>
+                            <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Symbol</th>
+                            <th style="text-align: right; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Net P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {recent_trades_html}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); text-align: right;">
+                {view_more_btn}
+            </div>
+        </div>
+        
         <!-- MONTHLY HEATMAP -->
         <div class="heatmap-container">
             <div class="heatmap-header">
@@ -1577,6 +1640,8 @@ def generate_dashboard():
         month_name_str=month_name,
         calendar_cells_html=calendar_cells_html,
         weeks_html=weeks_html,
+        recent_trades_html=recent_trades_html,
+        view_more_btn=view_more_btn,
         chart_data_json=chart_data_json,
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
@@ -1591,9 +1656,169 @@ def generate_dashboard():
     print(f"✓ Clean dashboard generated: {DASHBOARD_FILE}")
     return True
 
+def generate_trade_history_page(full_trades_html):
+    """Generate separate trade history page (trade-history.html)"""
+    from pathlib import Path
+    import json
+    
+    DASHBOARD_DIR = Path(__file__).parent.parent
+    HISTORY_FILE = DASHBOARD_DIR / "trade-history.html"
+    
+    html_content = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade History - Trading Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0F172A;
+            color: #E2E8F0;
+            padding: 16px;
+        }}
+        
+        .container {{
+            max-width: 1000px;
+            margin: 0 auto;
+        }}
+        
+        .header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #334155;
+        }}
+        
+        .header-title {{
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }}
+        
+        .back-link {{
+            padding: 8px 16px;
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #E2E8F0;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+        
+        .back-link:hover {{
+            background: #334155;
+        }}
+        
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            background: #1E293B;
+            border-radius: 8px;
+            overflow: hidden;
+        }}
+        
+        thead {{
+            background: #0F172A;
+            border-bottom: 1px solid #334155;
+        }}
+        
+        th {{
+            text-align: left;
+            padding: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94A3B8;
+            text-transform: uppercase;
+        }}
+        
+        td {{
+            padding: 16px;
+            border-bottom: 1px solid #334155;
+            font-size: 12px;
+        }}
+        
+        tr:hover {{
+            background: #334155;
+        }}
+        
+        .positive {{
+            color: #10B981;
+        }}
+        
+        .negative {{
+            color: #EF4444;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="header-title">Trade History</div>
+            </div>
+            <a href="index.html" class="back-link">← Back to Dashboard</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Close Date</th>
+                    <th>Symbol</th>
+                    <th>Net P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {full_trades_html}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+'''
+    
+    HISTORY_FILE.write_text(html_content)
+    print(f"✓ Trade history page generated: {HISTORY_FILE}")
+
 if __name__ == '__main__':
     try:
         generate_dashboard()
+        # Also generate trade history page
+        sell_orders = []
+        orders = load_orders_from_cache()
+        if orders:
+            sell_orders = [o for o in orders if o.get('side') == 'SELL']
+            sell_orders_sorted = sorted(sell_orders, key=lambda x: x.get('orderTime', ''), reverse=True)
+            
+            history = load_balance_history()
+            daily_pnl_map = calculate_daily_pnl(history)
+            
+            full_trades_html = ""
+            for idx, order in enumerate(sell_orders_sorted):
+                order_date = order.get('order_date', 'N/A')
+                symbol = order.get('symbol', 'UNKNOWN').split()[0]
+                daily_pnl = daily_pnl_map.get(order_date, 0)
+                pnl_color = "positive" if daily_pnl >= 0 else "negative"
+                pnl_str = f"${daily_pnl:,.2f}" if daily_pnl >= 0 else f"-${abs(daily_pnl):,.2f}"
+                
+                full_trades_html += f'''<tr>
+                    <td>{order_date}</td>
+                    <td>{symbol}</td>
+                    <td class="{pnl_color}">{pnl_str}</td>
+                </tr>'''
+            
+            generate_trade_history_page(full_trades_html)
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
