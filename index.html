@@ -749,8 +749,8 @@
         });
         
         // Entry Time Analysis Chart with PST labels
-        const entryTimeLabels = ["10:00am", "10:30am", "11:00am", "11:30am", "12:00pm", "12:30pm", "1:00pm", "1:30pm", "1:40pm", "1:41pm", "1:50pm", "6:30am", "7:00am", "7:30am", "8:00am", "8:30am", "9:00am", "9:30am"];
-        const entryTimePnLs = [0, 0, 0, 0, 0, 0, 0, 0, 214.66999999999825, -109.31000000000131, 268.0400000000009, 0, 0, 0, 0, 0, 0, 0];
+        const entryTimeLabels = ["6:30am", "7:00am", "7:30am", "8:00am", "8:30am", "9:00am", "9:30am", "10:00am", "10:30am", "11:00am", "11:30am", "12:00pm", "12:30pm", "1:00pm", "1:30pm"];
+        const entryTimePnLs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         
         const entryCtx = document.getElementById('entryTimeChart').getContext('2d');
         new Chart(entryCtx, {
@@ -798,7 +798,7 @@
         });
         
         // Duration vs P&L Scatter Chart
-        const durationData = [{"duration": 0, "pnl": -109.31000000000131}, {"duration": 0, "pnl": 214.66999999999825}, {"duration": 0, "pnl": 268.0400000000009}];
+        const durationData = [];
         
         const durationCtx = document.getElementById('durationChart').getContext('2d');
         new Chart(durationCtx, {

@@ -374,10 +374,12 @@ def generate_dashboard():
         entry_time_buckets[bucket_key]["count"] += 1
         entry_time_buckets[bucket_key]["pnls"].append(trade["pnl"])
         
-        duration_vs_pnl.append({
-            "duration": trade["duration"],
-            "pnl": trade["pnl"]
-        })
+        # Only include trades with positive duration (filter out 0 and negative values)
+        if trade["duration"] > 0:
+            duration_vs_pnl.append({
+                "duration": trade["duration"],
+                "pnl": trade["pnl"]
+            })
     
     # Calculate average P&L for each entry time bucket
     for bucket_key in entry_time_buckets:
@@ -424,10 +426,20 @@ def generate_dashboard():
         else:
             return "#DC2626"
     
-    # Prepare entry time data for chart
-    entry_times_list = sorted(entry_time_buckets.items())
-    entry_time_labels = [pst_time_from_hour_minute(int(k.split(":")[0]), int(k.split(":")[1])) for k, v in entry_times_list]
-    entry_time_pnls = [v["avg_pnl"] for k, v in entry_times_list]
+    # Prepare entry time data for chart - sorted chronologically (6:30am to 1:00pm)
+    entry_times_sorted = []
+    for hour in range(6, 14):
+        for minute in [0, 30]:
+            if hour == 6 and minute == 0:
+                continue  # Skip 6:00am
+            if hour == 14:
+                continue  # Skip 2:00pm and beyond
+            bucket_key = f"{hour}:{minute:02d}"
+            if bucket_key in entry_time_buckets:
+                entry_times_sorted.append((bucket_key, entry_time_buckets[bucket_key]))
+    
+    entry_time_labels = [pst_time_from_hour_minute(int(k.split(":")[0]), int(k.split(":")[1])) for k, v in entry_times_sorted]
+    entry_time_pnls = [v["avg_pnl"] for k, v in entry_times_sorted]
     
     print(f"\n📊 Dashboard Data Summary:")
     print(f"   Total trades analyzed: {len(trades_data)}")
