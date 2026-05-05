@@ -330,6 +330,8 @@ def generate_dashboard(open_after=False):
       color: var(--text);
       min-height: 100vh;
       padding: 32px;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     .shell {
@@ -337,6 +339,8 @@ def generate_dashboard(open_after=False):
       margin: 0 auto;
       display: grid;
       gap: 24px;
+      width: 100%;
+      overflow-x: hidden;
     }
 
     .panel {
@@ -589,6 +593,22 @@ def generate_dashboard(open_after=False):
     .briefing-card,
     .table-card {
       padding: 24px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: collapse;
+    }
+
+    table th,
+    table td {
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .chart-wrap {
@@ -865,10 +885,10 @@ def generate_dashboard(open_after=False):
     }
 
     @media (max-width: 480px) {
-      body { padding: 8px; }
-      .shell { gap: 10px; }
-      .panel { border-radius: 12px; }
-      .hero { padding: 12px; }
+      body { padding: 8px; overflow-x: hidden; }
+      .shell { gap: 10px; width: 100%; overflow-x: hidden; }
+      .panel { border-radius: 12px; max-width: 100%; overflow: hidden; }
+      .hero { padding: 12px; max-width: 100%; overflow-x: hidden; }
       .hero h1 { font-size: 20px; margin-bottom: 8px; line-height: 1.1; }
       .hero-copy { font-size: 13px; margin-bottom: 12px; line-height: 1.5; }
       .chart-panel,
@@ -901,9 +921,14 @@ def generate_dashboard(open_after=False):
       .hero-meta span:first-child { display: inline; }
       .title-group h2 { font-size: 16px; }
       .title-group p { font-size: 12px; }
-      table { font-size: 11px; }
-      th, td { padding: 8px 6px; }
+      table { font-size: 11px; width: 100%; }
+      th, td { padding: 8px 6px; white-space: nowrap; }
       .range-toggle button { padding: 6px 10px; font-size: 11px; }
+      .hero-grid { max-width: 100%; overflow: hidden; }
+      .cards-grid { max-width: 100%; overflow: hidden; }
+      .content-grid { max-width: 100%; overflow: hidden; }
+      .lower-grid { max-width: 100%; overflow: hidden; }
+      .briefing-grid { max-width: 100%; overflow: hidden; }
     }
   </style>
 </head>
