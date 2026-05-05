@@ -11,6 +11,7 @@ import json
 import os
 import re
 import random
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from statistics import mean, stdev
@@ -20,6 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 INCEPTION_TARGET = datetime(2025, 10, 15)
 INCEPTION_BALANCE = 7922.66
 TRACKER_FILE = Path(os.path.expanduser("~/clawd/memory/balance_tracker.json"))
+ORDERS_CACHE_FILE = Path(os.path.expanduser("~/clawd/memory/all_orders_cache.json"))
 REPORT_DIR = REPO_ROOT / "reports"
 DASHBOARD_FILE = REPO_ROOT / "index.html"
 
@@ -74,8 +76,118 @@ def parse_report_metrics(report_text):
     
     return metrics
 
+def load_orders_from_cache():
+    """Load real orders from cache file. Falls back to empty list if not available."""
+    if not ORDERS_CACHE_FILE.exists():
+        print(f"[!] Orders cache not found at {ORDERS_CACHE_FILE}")
+        print(f"    Run: python3 scripts/fetch_and_cache_orders.py")
+        return []
+    
+    try:
+        with ORDERS_CACHE_FILE.open('r') as f:
+            orders = json.load(f)
+        print(f"✓ Loaded {len(orders)} cached orders")
+        return orders
+    except Exception as e:
+        print(f"[!] Error loading orders cache: {e}")
+        return []
+
+def convert_orders_to_trades(orders):
+    """Convert Schwab orders to trade records with entry time, symbol, side, quantity, price."""
+    trades = []
+    
+    for order in orders:
+        try:
+            # Parse order time to extract hour/minute
+            order_time_str = order.get('orderTime', '')
+            if not order_time_str:
+                continue
+            
+            # Handle timezone formats
+            normalized_time_str = order_time_str.replace('Z', '+00:00')
+            if normalized_time_str.endswith('+0000'):
+                normalized_time_str = normalized_time_str[:-5] + '+00:00'
+            
+            order_time = datetime.fromisoformat(normalized_time_str)
+            entry_hour = order_time.hour
+            entry_minute = order_time.minute
+            
+            # Extract base symbol (e.g., "QQQ" from "QQQ   251107C00607000")
+            raw_symbol = order.get('symbol', 'UNKNOWN')
+            base_symbol = raw_symbol.split()[0] if raw_symbol else 'UNKNOWN'
+            
+            # Get price - may be 0 if not available in API response
+            price = float(order.get('price', 0))
+            quantity = float(order.get('quantity', 0))
+            
+            trade = {
+                "entry_hour": entry_hour,
+                "entry_minute": entry_minute,
+                "ticker": base_symbol,
+                "side": order.get('side', 'BUY'),
+                "instrument": raw_symbol,  # Keep full option contract
+                "quantity": quantity,
+                "price": price,
+                "order_time_str": order_time_str,
+                "order_date": order_time.strftime('%Y-%m-%d'),
+                "pnl": 0,  # Will be calculated per-day
+                "roi": 0,
+                "r_multiple": 0,
+                "duration": 0,
+                "is_winner": False,
+                "volume": quantity,
+                "strategy": order.get('orderType', 'Execution'),
+            }
+            trades.append(trade)
+        except Exception as e:
+            print(f"[!] Error converting order: {e}", file=sys.stderr)
+            print(f"    Order: {order.get('symbol', 'UNKNOWN')} @ {order.get('orderTime', 'N/A')}", file=sys.stderr)
+            continue
+    
+    return trades
+
+def calculate_daily_pnl(orders):
+    """Calculate daily P&L by matching buys and sells per symbol."""
+    daily_pnl = {}  # date -> pnl
+    
+    # Group orders by date and symbol
+    orders_by_date_symbol = {}
+    for order in orders:
+        try:
+            date = order.get('order_date', datetime.now().strftime('%Y-%m-%d'))
+            symbol = order.get('symbol', '')
+            key = (date, symbol)
+            
+            if key not in orders_by_date_symbol:
+                orders_by_date_symbol[key] = {'buys': [], 'sells': []}
+            
+            side = order.get('side', 'BUY').upper()
+            if side == 'BUY':
+                orders_by_date_symbol[key]['buys'].append(order)
+            else:
+                orders_by_date_symbol[key]['sells'].append(order)
+        except Exception as e:
+            print(f"[!] Error grouping order: {e}", file=sys.stderr)
+            continue
+    
+    # Calculate P&L for each symbol/date
+    for (date, symbol), sides_dict in orders_by_date_symbol.items():
+        buys = sides_dict['buys']
+        sells = sides_dict['sells']
+        
+        buy_cost = sum(float(b.get('price', 0)) * float(b.get('quantity', 0)) for b in buys)
+        sell_proceeds = sum(float(s.get('price', 0)) * float(s.get('quantity', 0)) for s in sells)
+        
+        pnl = sell_proceeds - buy_cost
+        
+        if date not in daily_pnl:
+            daily_pnl[date] = 0
+        daily_pnl[date] += pnl
+    
+    return daily_pnl
+
 def generate_synthetic_trades(num_trades=157):
-    """Generate synthetic trade data"""
+    """Generate synthetic trade data as fallback"""
     trades = []
     tickers = ['SPY', 'QQQ', 'IWM', 'XLK', 'XLV', 'XLF', 'XLE', 'XLY', 'AAPL', 'MSFT']
     sides = ['CALL', 'PUT']
@@ -83,8 +195,8 @@ def generate_synthetic_trades(num_trades=157):
     strategies = ['Delta Neutral', 'Directional', 'Earnings Play', 'Support/Resistance', 'Swing Trade']
     
     for _ in range(num_trades):
-        entry_hour = random.randint(9, 16)
-        entry_minute = random.randint(0, 59)
+        entry_hour = random.randint(6, 13)
+        entry_minute = random.choice([0, 30])
         pnl = random.gauss(-20, 100)
         roi = (pnl / random.uniform(100, 2000)) * 100
         r_multiple = pnl / random.uniform(50, 300) if pnl > 0 else -(abs(pnl) / random.uniform(50, 300))
@@ -110,26 +222,38 @@ def generate_synthetic_trades(num_trades=157):
     return trades
 
 def generate_intraday_pnl_progression(trades_data):
-    """Generate cumulative P&L progression throughout the day"""
-    # Bucket trades by hour
-    hourly_pnl = {}
+    """Generate cumulative P&L progression throughout the day (6:30am - 1:00pm)"""
+    # Bucket trades by 30-minute increments
+    bucket_pnl = {}
     for trade in trades_data:
         hour = trade["entry_hour"]
-        if hour not in hourly_pnl:
-            hourly_pnl[hour] = []
-        hourly_pnl[hour].append(trade["pnl"])
+        minute = trade["entry_minute"]
+        bucket_key = f"{hour}:{minute:02d}"
+        if bucket_key not in bucket_pnl:
+            bucket_pnl[bucket_key] = []
+        bucket_pnl[bucket_key].append(trade["pnl"])
     
-    # Generate cumulative P&L progression
+    # Generate cumulative P&L progression from 6:30am to 1:00pm
     progression = []
     cumulative = 0
-    for hour in range(9, 17):
-        if hour in hourly_pnl:
-            cumulative += sum(hourly_pnl[hour])
-        progression.append({
-            "hour": hour,
-            "time_label": f"{hour}:00" if hour < 12 else ("12:00" if hour == 12 else f"{hour-12}:00"),
-            "cumulative_pnl": cumulative
-        })
+    for hour in range(6, 14):
+        for minute in [0, 30]:
+            if hour == 6 and minute == 0:
+                continue  # Skip 6:00am, start at 6:30am
+            if hour > 13:
+                break  # Stop after 1:00pm
+            
+            bucket_key = f"{hour}:{minute:02d}"
+            if bucket_key in bucket_pnl:
+                cumulative += sum(bucket_pnl[bucket_key])
+            
+            time_label = pst_time_from_hour_minute(hour, minute)
+            progression.append({
+                "hour": hour,
+                "minute": minute,
+                "time_label": time_label,
+                "cumulative_pnl": cumulative
+            })
     
     return progression
 
@@ -145,6 +269,9 @@ def pst_time_from_hour_minute(hour, minute):
         return f"{hour - 12}:{minute:02d}pm"
 
 def generate_dashboard():
+    # Load real orders from cache
+    orders = load_orders_from_cache()
+    
     history = load_balance_history()
     _, report_text = find_latest_report()
     report_metrics = parse_report_metrics(report_text) if report_text else {}
@@ -153,20 +280,29 @@ def generate_dashboard():
     inception_date = INCEPTION_TARGET
     inception_value = INCEPTION_BALANCE
     
-    # Daily returns
+    # Daily returns using real orders and balance history
     daily_returns = []
     daily_pnl_map = {}
     
+    if orders:
+        # Use real orders to build daily P&L map
+        real_daily_pnl = calculate_daily_pnl(orders)
+        daily_pnl_map = real_daily_pnl
+    
+    # Also add balance-based P&L for dates without order data
     for i in range(1, len(history)):
         prev = history[i-1][1]
         curr = history[i][1]
         date_key = history[i][0].strftime("%Y-%m-%d")
         pnl = curr - prev
         
-        if prev:
-            daily_returns.append(((pnl) / prev) * 100)
+        # If we have real order P&L, use it; otherwise use balance-based
+        if date_key not in daily_pnl_map:
+            daily_pnl_map[date_key] = pnl
         
-        daily_pnl_map[date_key] = pnl
+        if prev:
+            actual_pnl = daily_pnl_map.get(date_key, pnl)
+            daily_returns.append(((actual_pnl) / prev) * 100)
     
     # Period calculations
     val_30d_ago = history[-30][1] if len(history) >= 30 else inception_value
@@ -198,10 +334,19 @@ def generate_dashboard():
     all_time_high = max(v for _, v in history)
     drawdown = ((current_value - all_time_high) / all_time_high * 100) if all_time_high else 0
     
-    # Trades
-    trades_7d = report_metrics.get("filled_7d", 0) or 0
-    trades_today = report_metrics.get("today_trades", 0) or 0
-    trades_total = report_metrics.get("all_filled", 157) or 157
+    # Trades - use real order count if available, otherwise report metrics
+    if orders:
+        trades_total = len(orders)
+        # Calculate trades by time window
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        
+        trades_today = sum(1 for o in orders if o.get('order_date') == today_str)
+        trades_7d = sum(1 for o in orders if o.get('order_date') >= seven_days_ago)
+    else:
+        trades_7d = report_metrics.get("filled_7d", 0) or 0
+        trades_today = report_metrics.get("today_trades", 0) or 0
+        trades_total = report_metrics.get("all_filled", 0) or 0
     
     # Chart data (last 60 days)
     chart_data = [
@@ -209,20 +354,38 @@ def generate_dashboard():
         for d, v in history[-60:]
     ]
     
-    # Synthetic data
-    trades_data = generate_synthetic_trades(trades_total)
+    # Convert real orders to trades for analysis, or use synthetic if no real data
+    if orders:
+        trades_data = convert_orders_to_trades(orders)
+        print(f"✓ Using {len(trades_data)} real trades for dashboard")
+    else:
+        print(f"[!] No real orders available, using synthetic data")
+        trades_data = generate_synthetic_trades(trades_total if trades_total > 0 else 157)
+    
     intraday_progression = generate_intraday_pnl_progression(trades_data)
     
     # Entry time analysis data
     entry_time_buckets = {}
     duration_vs_pnl = []
     
+    # Initialize all 30-min buckets from 6:30am to 1:00pm
+    for hour in range(6, 14):
+        for minute in [0, 30]:
+            if hour == 6 and minute == 0:
+                continue  # Skip 6:00am, start at 6:30am
+            if hour == 14:
+                continue  # Skip 2:00pm and beyond
+            bucket_key = f"{hour}:{minute:02d}"
+            entry_time_buckets[bucket_key] = {"count": 0, "avg_pnl": 0, "pnls": []}
+    
     for trade in trades_data:
         entry_hour = trade["entry_hour"]
         entry_minute = trade["entry_minute"]
-        bucket_hour = entry_hour
-        bucket_minute = 0 if entry_minute < 30 else 30
-        bucket_key = f"{bucket_hour}:{bucket_minute:02d}"
+        bucket_key = f"{entry_hour}:{entry_minute:02d}"
+        
+        # Only include trades within market hours (6:30am to 1:00pm)
+        if entry_hour < 6 or (entry_hour == 6 and entry_minute < 30) or entry_hour > 13:
+            continue
         
         if bucket_key not in entry_time_buckets:
             entry_time_buckets[bucket_key] = {"count": 0, "avg_pnl": 0, "pnls": []}
@@ -284,6 +447,13 @@ def generate_dashboard():
     entry_times_list = sorted(entry_time_buckets.items())
     entry_time_labels = [pst_time_from_hour_minute(int(k.split(":")[0]), int(k.split(":")[1])) for k, v in entry_times_list]
     entry_time_pnls = [v["avg_pnl"] for k, v in entry_times_list]
+    
+    print(f"\n📊 Dashboard Data Summary:")
+    print(f"   Total trades analyzed: {len(trades_data)}")
+    print(f"   Entry time buckets: {len([b for b in entry_time_buckets.values() if b['count'] > 0])}")
+    if trades_data:
+        symbols_in_trades = set(t['ticker'] for t in trades_data)
+        print(f"   Symbols: {', '.join(sorted(symbols_in_trades)[:10])}")
     
     # Build calendar cells HTML
     calendar_cells_html = ""
