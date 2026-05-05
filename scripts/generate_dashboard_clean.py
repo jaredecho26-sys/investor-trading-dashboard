@@ -586,14 +586,16 @@ def generate_dashboard():
     entry_time_pnls_json = json.dumps(entry_time_pnls)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
     
-    # Build recent trades list (SELL orders = closed trades)
-    sell_orders = [o for o in orders if o.get('side') == 'SELL']
-    sell_orders_sorted = sorted(sell_orders, key=lambda x: x.get('orderTime', ''), reverse=True)
+    # Build recent trades list (BUY orders = trade entries)
+    buy_orders = [o for o in orders if o.get('side') == 'BUY']
+    buy_orders_sorted = sorted(buy_orders, key=lambda x: x.get('orderTime', ''), reverse=True)
     
     recent_trades_html = ""
-    for idx, order in enumerate(sell_orders_sorted[:10]):  # Show 10 most recent
+    for idx, order in enumerate(buy_orders_sorted[:10]):  # Show 10 most recent entries
         order_date = order.get('order_date', 'N/A')
+        order_time = order.get('orderTime', '').split('T')[1][:5] if 'T' in order.get('orderTime', '') else ''
         symbol = order.get('symbol', 'UNKNOWN').split()[0]  # Base symbol
+        order_type = order.get('orderType', 'MARKET')
         
         # Get daily P&L for that date
         daily_pnl = daily_pnl_map.get(order_date, 0)
@@ -603,28 +605,27 @@ def generate_dashboard():
         recent_trades_html += f'''<tr style="border-bottom: 1px solid var(--border);
             {"background: rgba(0,0,0,0.02);" if idx % 2 == 0 else ""}
         ">
-            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date}</td>
+            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date} {order_time}</td>
             <td style="padding: 12px; font-size: 12px; font-weight: 600;">{symbol}</td>
-            <td style="padding: 12px; font-size: 12px; font-weight: 600; color: {pnl_color};">{pnl_str}</td>
+            <td style="padding: 12px; font-size: 12px; color: #9CA3AF;">{order_type}</td>
         </tr>'''
     
     view_more_btn = '<a href="trade-history.html" style="display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--purple); color: white; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">View more →</a>'
     
-    # Build full trade history table (for separate page)
+    # Build full trade history table (for separate page) - using BUY orders
     full_trades_html = ""
-    for idx, order in enumerate(sell_orders_sorted):  # All SELL orders
+    for idx, order in enumerate(buy_orders_sorted):  # All BUY orders (trade entries)
         order_date = order.get('order_date', 'N/A')
+        order_time = order.get('orderTime', '').split('T')[1][:5] if 'T' in order.get('orderTime', '') else ''
         symbol = order.get('symbol', 'UNKNOWN').split()[0]
-        daily_pnl = daily_pnl_map.get(order_date, 0)
-        pnl_color = "#10B981" if daily_pnl >= 0 else "#EF4444"
-        pnl_str = f"${daily_pnl:,.2f}" if daily_pnl >= 0 else f"-${abs(daily_pnl):,.2f}"
+        order_type = order.get('orderType', 'MARKET')
         
         full_trades_html += f'''<tr style="border-bottom: 1px solid var(--border);
             {"background: rgba(0,0,0,0.02);" if idx % 2 == 0 else ""}
         ">
-            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date}</td>
+            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">{order_date} {order_time}</td>
             <td style="padding: 12px; font-size: 12px; font-weight: 600;">{symbol}</td>
-            <td style="padding: 12px; font-size: 12px; font-weight: 600; color: {pnl_color};">{pnl_str}</td>
+            <td style="padding: 12px; font-size: 12px;">{order_type}</td>
         </tr>'''
     
     # Embed full orders cache for modal to look up real trades by date
@@ -1118,9 +1119,9 @@ def generate_dashboard():
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead style="position: sticky; top: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border);">
                         <tr>
-                            <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Close Date</th>
+                            <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Entry Time</th>
                             <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Symbol</th>
-                            <th style="text-align: right; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Net P&L</th>
+                            <th style="text-align: left; padding: 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Order Type</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1632,9 +1633,9 @@ def generate_trade_history_page(full_trades_html):
         <table>
             <thead>
                 <tr>
-                    <th>Close Date</th>
+                    <th>Entry Time</th>
                     <th>Symbol</th>
-                    <th>Net P&L</th>
+                    <th>Order Type</th>
                 </tr>
             </thead>
             <tbody>
@@ -1661,19 +1662,20 @@ if __name__ == '__main__':
             
             history = load_balance_history()
             daily_pnl_map = calculate_daily_pnl(history)
+            buy_orders = [o for o in orders if o.get('side') == 'BUY']
+            buy_orders_sorted = sorted(buy_orders, key=lambda x: x.get('orderTime', ''), reverse=True)
             
             full_trades_html = ""
-            for idx, order in enumerate(sell_orders_sorted):
+            for idx, order in enumerate(buy_orders_sorted):
                 order_date = order.get('order_date', 'N/A')
+                order_time = order.get('orderTime', '').split('T')[1][:5] if 'T' in order.get('orderTime', '') else ''
                 symbol = order.get('symbol', 'UNKNOWN').split()[0]
-                daily_pnl = daily_pnl_map.get(order_date, 0)
-                pnl_color = "positive" if daily_pnl >= 0 else "negative"
-                pnl_str = f"${daily_pnl:,.2f}" if daily_pnl >= 0 else f"-${abs(daily_pnl):,.2f}"
+                order_type = order.get('orderType', 'MARKET')
                 
                 full_trades_html += f'''<tr>
-                    <td>{order_date}</td>
+                    <td>{order_date} {order_time}</td>
                     <td>{symbol}</td>
-                    <td class="{pnl_color}">{pnl_str}</td>
+                    <td>{order_type}</td>
                 </tr>'''
             
             generate_trade_history_page(full_trades_html)
