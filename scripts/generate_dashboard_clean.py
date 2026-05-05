@@ -1334,14 +1334,6 @@ def generate_dashboard():
         }}
         
         // Month navigation (placeholder)
-        function prevMonth() {{
-            alert('Previous month functionality coming soon');
-        }}
-        
-        function nextMonth() {{
-            alert('Next month functionality coming soon');
-        }}
-        
         // Helper function to convert minutes to human-readable time
         function formatDuration(minutes) {{
             if (minutes < 60) {{
