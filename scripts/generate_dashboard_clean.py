@@ -937,14 +937,24 @@ def generate_dashboard():
                 }},
                 scales: {{
                     y: {{
-                        title: {{ display: true, text: 'P&L ($)' }},
+                        title: {{ display: true, text: 'P&L ($)', color: '#9CA3AF', font: {{ size: 12 }} }},
                         grid: {{ color: 'rgba(0,0,0,0.05)' }},
-                        ticks: {{ color: '#9CA3AF' }},
+                        ticks: {{
+                            color: '#9CA3AF',
+                            callback: function(value) {{
+                                return '$' + value.toFixed(0);
+                            }}
+                        }}
                     }},
                     x: {{
-                        title: {{ display: true, text: 'Duration (minutes)' }},
-                        grid: {{ display: false }},
-                        ticks: {{ color: '#9CA3AF' }},
+                        title: {{ display: true, text: 'Trade Duration', color: '#9CA3AF', font: {{ size: 12 }} }},
+                        grid: {{ color: 'rgba(0,0,0,0.05)' }},
+                        ticks: {{
+                            color: '#9CA3AF',
+                            callback: function(value) {{
+                                return formatDuration(value);
+                            }}
+                        }}
                     }}
                 }}
             }}
