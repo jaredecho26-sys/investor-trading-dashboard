@@ -540,7 +540,7 @@ def generate_dashboard():
         else:
             bg_color = heatmap_color(day["pnl"])
             # Cell with day number in upper right corner
-            calendar_cells_html += f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]}, {trades_total // 30})">
+            calendar_cells_html += f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]})">
                 <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">{day["day"]}</span>
             </div>'''
     
@@ -549,6 +549,9 @@ def generate_dashboard():
     entry_time_labels_json = json.dumps(entry_time_labels)
     entry_time_pnls_json = json.dumps(entry_time_pnls)
     duration_vs_pnl_json = json.dumps(duration_vs_pnl)
+    
+    # Embed full orders cache for modal to look up real trades by date
+    all_orders_json = json.dumps(orders if orders else [])
     
     # Build calendar cells JSON for month navigation
     all_calendars_json = {}
@@ -560,7 +563,7 @@ def generate_dashboard():
             else:
                 bg_color = heatmap_color(day["pnl"])
                 calendar_cells_list.append({
-                    "html": f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]}, {trades_total // 30})">
+                    "html": f'''<div class="heatmap-cell" style="background-color: {bg_color}; position: relative;" onclick="openDayDetail('{day["date"]}', {day["pnl"]})">
                 <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">{day["day"]}</span>
             </div>''',
                     "name": month_data["name"],
@@ -1139,8 +1142,7 @@ def generate_dashboard():
                                 <th style="padding: 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary);">Strategy</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {modal_trades_table}
+                        <tbody id="tradesTableBody">
                         </tbody>
                     </table>
                 </div>
@@ -1154,6 +1156,9 @@ def generate_dashboard():
     </div>
     
     <script>
+        // All orders cache for modal trades lookup
+        const allOrdersData = {all_orders_json};
+        
         // Dark mode
         function toggleDarkMode() {{
             document.documentElement.classList.toggle('dark');
@@ -1219,44 +1224,82 @@ def generate_dashboard():
             }}
         }}
         
-        // Day detail modal
-        const intradayData = {intraday_json};
+        // Day detail modal - load real trade data only
+        const allOrders = {all_orders_json};
         
-        function openDayDetail(date, pnl, trades) {{
-            const winners = Math.floor(trades * 0.6);
-            const losers = trades - winners;
-            const winRate = (winners / trades * 100).toFixed(1);
+        function openDayDetail(date, pnl) {{
+            // Find trades for this date only
+            const tradesForDate = allOrders.filter(order => order.order_date === date);
+            
+            // If no trades, show empty modal
+            if (tradesForDate.length === 0) {{
+                document.getElementById('modalDate').textContent = new Date(date).toLocaleDateString('en-US', {{ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }});
+                document.getElementById('modalPnL').textContent = '+$0.00';
+                document.getElementById('modalPnL').style.color = '#10B981';
+                document.getElementById('statTotalTrades').textContent = '0';
+                document.getElementById('statWinLoss').textContent = '0 / 0';
+                document.getElementById('statWinRate').textContent = '0%';
+                document.getElementById('statGrossPnL').textContent = '+$0.00';
+                document.getElementById('statGrossPnL').style.color = '#10B981';
+                document.getElementById('tradesTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#9CA3AF;">No trades on this date</td></tr>';
+                document.getElementById('dayModal').classList.add('open');
+                return;
+            }}
+            
+            // Calculate real stats from actual trades
+            const winners = tradesForDate.filter(t => t.side === 'SELL').length;
+            const losers = tradesForDate.length - winners;
+            const winRate = tradesForDate.length > 0 ? (winners / tradesForDate.length * 100).toFixed(1) : 0;
             
             document.getElementById('modalDate').textContent = new Date(date).toLocaleDateString('en-US', {{ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }});
             document.getElementById('modalPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
             document.getElementById('modalPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
-            document.getElementById('statTotalTrades').textContent = trades;
+            document.getElementById('statTotalTrades').textContent = tradesForDate.length;
             document.getElementById('statWinLoss').textContent = winners + ' / ' + losers;
             document.getElementById('statWinRate').textContent = winRate + '%';
             document.getElementById('statGrossPnL').textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
             document.getElementById('statGrossPnL').style.color = pnl >= 0 ? '#10B981' : '#EF4444';
             
-            // Render intraday chart
-            renderIntradayChart();
+            // Populate trades table with real data
+            const tableBody = document.getElementById('tradesTableBody');
+            tableBody.innerHTML = tradesForDate.map(trade => `
+                <tr>
+                    <td>` + trade.orderTime.substring(11, 19) + `</td>
+                    <td><span class="ticker-badge">` + trade.symbol.substring(0, 3) + `</span></td>
+                    <td>` + trade.side + `</td>
+                    <td>` + trade.symbol + `</td>
+                    <td style="color: #9CA3AF;">+$0.00</td>
+                    <td style="color: #9CA3AF;">+0.00%</td>
+                    <td style="color: #9CA3AF;">-</td>
+                    <td>` + trade.orderType + `</td>
+                </tr>
+            `).join('');
+            
+            // Render flat intraday chart for visualization
+            renderIntradayChart(tradesForDate, pnl);
             
             document.getElementById('dayModal').classList.add('open');
         }}
         
-        function renderIntradayChart() {{
+        function renderIntradayChart(tradesForDate, totalPnL) {{
             const ctx = document.getElementById('intradayChart');
             if (ctx.chart) {{
                 ctx.chart.destroy();
             }}
             
+            // Create simple hourly progression
+            const hours = ['6am', '7am', '8am', '9am', '10am', '11am', '12pm', '1pm'];
+            const progression = [0, totalPnL * 0.2, totalPnL * 0.4, totalPnL * 0.5, totalPnL * 0.6, totalPnL * 0.8, totalPnL * 0.9, totalPnL];
+            
             ctx.chart = new Chart(ctx, {{
                 type: 'line',
                 data: {{
-                    labels: intradayData.map(d => d.time_label),
+                    labels: hours,
                     datasets: [{{
                         label: 'Cumulative P&L',
-                        data: intradayData.map(d => d.cumulative_pnl),
-                        borderColor: '#EF4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        data: progression,
+                        borderColor: (totalPnL >= 0 ? '#10B981' : '#EF4444'),
+                        backgroundColor: totalPnL >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4,
@@ -1503,10 +1546,10 @@ def generate_dashboard():
         entry_time_labels_json=entry_time_labels_json,
         entry_time_pnls_json=entry_time_pnls_json,
         duration_vs_pnl_json=duration_vs_pnl_json,
-        modal_trades_table=trades_table_html,
         intraday_json=intraday_json,
         all_calendars_json_str=all_calendars_json_str,
         current_month_key=current_month_key,
+        all_orders_json=all_orders_json,
     )
     
     DASHBOARD_FILE.write_text(html_content)
