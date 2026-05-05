@@ -202,6 +202,24 @@
             transform: scale(1.1);
         }
         
+        .heatmap-cell-rich {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        
+        .heatmap-cell-rich:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
         .heatmap-empty {
             background: transparent;
             border: none;
@@ -439,70 +457,269 @@
                     <button onclick="nextMonth()">Next →</button>
                 </div>
             </div>
-            <div class="heatmap-grid">
-                <div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell" style="background-color: #10B981; position: relative;" onclick="openDayDetail('2026-05-01', 135.36000000000058)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">1</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-02', 0.0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">2</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-03', 0.0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">3</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-04', 0.0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">4</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-05', -6.630000000001019)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">5</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-06', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">6</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-07', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">7</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-08', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">8</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-09', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">9</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-10', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">10</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-11', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">11</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-12', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">12</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-13', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">13</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-14', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">14</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-15', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">15</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-16', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">16</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-17', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">17</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-18', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">18</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-19', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">19</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-20', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">20</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-21', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">21</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-22', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">22</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-23', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">23</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-24', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">24</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-25', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">25</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-26', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">26</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-27', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">27</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-28', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">28</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-29', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">29</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-30', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">30</span>
-            </div><div class="heatmap-cell" style="background-color: #FEF2F2; position: relative;" onclick="openDayDetail('2026-05-31', 0)">
-                <span style="position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 700; color: black; opacity: 0.8;">31</span>
+            <div style="display: flex; gap: 20px;">
+                <div class="heatmap-grid">
+                    <div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-01', 135.36000000000058)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">1</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$135.4</div>
+                    <div style="font-size: 10px; color: #6B7280;">2 trades</div>
+                    <div style="font-size: 10px; color: #6B7280;">0.0%</div>
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: block;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-02', 0.0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">2</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-03', 0.0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">3</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-04', 0.0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">4</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    <div style="font-size: 10px; color: #6B7280;">3 trades</div>
+                    <div style="font-size: 10px; color: #6B7280;">0.0%</div>
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: block;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #FEF2F2; border: 2px solid #EF4444; position: relative;" onclick="openDayDetail('2026-05-05', -6.630000000001019)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">5</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #EF4444;">-$6.6</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #EF4444; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-06', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">6</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-07', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">7</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-08', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">8</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-09', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">9</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-10', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">10</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-11', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">11</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-12', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">12</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-13', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">13</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-14', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">14</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-15', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">15</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-16', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">16</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-17', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">17</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-18', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">18</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-19', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">19</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-20', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">20</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-21', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">21</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-22', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">22</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-23', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">23</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-24', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">24</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-25', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">25</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-26', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">26</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-27', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">27</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-28', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">28</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-29', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">29</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-30', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">30</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
+            </div><div class="heatmap-cell-rich" style="background-color: #F0FDF4; border: 2px solid #10B981; position: relative;" onclick="openDayDetail('2026-05-31', 0)">
+                <div style="position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: 700; color: #1F2937;">31</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10B981;">$0.0</div>
+                    
+                    
+                </div>
+                <div style="position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background-color: #10B981; display: none;"></div>
             </div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div><div class="heatmap-cell heatmap-empty"></div>
+                </div>
+                <div style="flex: 0 0 140px;">
+                    <div style="background: #F0FDF4; border: 2px solid #10B981; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: center;">
+            <div style="font-size: 12px; color: #9CA3AF; margin-bottom: 8px;">Week 1</div>
+            <div style="font-size: 16px; font-weight: 700; color: #10B981; margin-bottom: 4px;">$135.4</div>
+            <div style="font-size: 12px; color: #9CA3AF;">1 day</div>
+        </div><div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: center;">
+            <div style="font-size: 12px; color: #9CA3AF; margin-bottom: 8px;">Week 2</div>
+            <div style="font-size: 16px; font-weight: 700; color: #EF4444; margin-bottom: 4px;">-$6.6</div>
+            <div style="font-size: 12px; color: #9CA3AF;">1 day</div>
+        </div>
+                </div>
             </div>
         </div>
     </div>
