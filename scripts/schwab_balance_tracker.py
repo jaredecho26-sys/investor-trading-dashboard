@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Track daily balance snapshots for rolling 30-day and YTD (Jan 1, 2026) calculations
-Tracks back to 11/01/2025
+Tracks back to 10/15/2025
 """
 
 import json

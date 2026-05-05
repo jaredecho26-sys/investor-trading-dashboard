@@ -15,7 +15,8 @@ from statistics import mean
 from string import Template
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-INCEPTION_TARGET = datetime(2025, 11, 1)
+INCEPTION_TARGET = datetime(2025, 10, 15)
+INCEPTION_BALANCE = 7922.66
 TRACKER_FILE = Path(os.path.expanduser("~/clawd/memory/balance_tracker.json"))
 REPORT_DIR = REPO_ROOT / "reports"
 DASHBOARD_FILE = REPO_ROOT / "index.html"
@@ -39,6 +40,10 @@ def load_balance_history():
         ((datetime.strptime(date_str, "%Y-%m-%d"), float(value)) for date_str, value in raw.items()),
         key=lambda item: item[0],
     )
+
+    if not any(date_obj == INCEPTION_TARGET for date_obj, _ in items):
+        items.insert(0, (INCEPTION_TARGET, INCEPTION_BALANCE))
+
     return items
 
 
@@ -89,7 +94,7 @@ def parse_report_metrics(report_text):
         "cash_position": r"Cash Position:\s*\$([\d,]+\.\d{2})",
         "filled_7d": r"Last 7 Days:\s*(\d+) filled orders",
         "today_trades": r"Today:\s*(\d+) trades",
-        "all_filled": r"Since 11/01/2025:\s*(\d+) trades",
+        "all_filled": r"Since 10/15/2025:\s*(\d+) trades",
         "generated_time": r"Generated:\s*([^\n]+)",
         "automation_status": r"Automation Status:\s*([^\n]+)",
     }
@@ -163,7 +168,7 @@ def generate_dashboard(open_after=False):
     latest_date, current_value = history[-1]
     previous_date, previous_value = history[-2] if len(history) > 1 else history[-1]
     inception_date = INCEPTION_TARGET
-    inception_value = next((value for date_obj, value in history if date_obj == INCEPTION_TARGET), None)
+    inception_value = next((value for date_obj, value in history if date_obj == INCEPTION_TARGET), INCEPTION_BALANCE)
 
     trailing_60 = history[-60:] if len(history) >= 60 else history
     trailing_30 = history[-30:] if len(history) >= 30 else history

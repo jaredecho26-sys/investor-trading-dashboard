@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPORT_DIR = REPO_ROOT / "reports"
-INCEPTION_DATE = datetime(2025, 11, 1, tzinfo=timezone.utc).astimezone()
+INCEPTION_DATE = datetime(2025, 10, 15, tzinfo=timezone.utc).astimezone()
 
 sys.path.insert(0, str(SCRIPT_DIR))
 from schwab_token_utils import get_fresh_access_token
@@ -135,7 +135,7 @@ Portfolio Snapshot:
 📈 TRADES TAKEN:
   • Last 7 Days: {filled_count} filled orders
   • Today: {today_trades} trades
-  • Since 11/01/2025: {all_filled} trades
+  • Since 10/15/2025: {all_filled} trades
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
